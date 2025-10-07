@@ -9,36 +9,61 @@ const ConditionNode = ({ data, isConnectable, id }) => {
     const [expression, setExpression] = useState(data.expression || '');
     const [value, setValue] = useState(data.value || '');
     const [isValid, setIsValid] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const [availableFields, setAvailableFields] = useState([]);
     const [availableExpressions, setAvailableExpressions] = useState([]);
     const { updateNodeData } = useReactFlow();
 
-    // Update available fields when table changes
+    // Initialize available fields and expressions on first load
     useEffect(() => {
-        if (selectedTable && tableSchema[selectedTable]) {
-            setAvailableFields(tableSchema[selectedTable]);
-            setSelectedField('');
-            setExpression('');
-            setValue('');
-        } else {
-            setAvailableFields([]);
-        }
-    }, [selectedTable]);
+        if (!isInitialized) {
+            if (selectedTable && tableSchema[selectedTable]) {
+                setAvailableFields(tableSchema[selectedTable]);
 
-    // Update available expressions when field changes
+                // If we have a selected field, set up expressions
+                if (selectedField) {
+                    const field = tableSchema[selectedTable].find(f => f.name === selectedField);
+                    if (field) {
+                        setAvailableExpressions(expressionSymbols[field.type] || []);
+                    }
+                }
+            }
+            setIsInitialized(true);
+        }
+    }, [selectedTable, selectedField, isInitialized]);
+
+    // Update available fields when table changes (only after initialization)
     useEffect(() => {
-        if (selectedField && availableFields.length > 0) {
-            const field = availableFields.find(f => f.name === selectedField);
-            if (field) {
-                setAvailableExpressions(expressionSymbols[field.type] || []);
+        if (isInitialized && selectedTable && tableSchema[selectedTable]) {
+            setAvailableFields(tableSchema[selectedTable]);
+            // Only clear fields if this is a user-initiated change, not initial load
+            if (data.selectedTable !== selectedTable) {
+                setSelectedField('');
                 setExpression('');
                 setValue('');
             }
-        } else {
+        } else if (isInitialized) {
+            setAvailableFields([]);
+        }
+    }, [selectedTable, isInitialized, data.selectedTable]);
+
+    // Update available expressions when field changes (only after initialization)
+    useEffect(() => {
+        if (isInitialized && selectedField && availableFields.length > 0) {
+            const field = availableFields.find(f => f.name === selectedField);
+            if (field) {
+                setAvailableExpressions(expressionSymbols[field.type] || []);
+                // Only clear expression and value if this is a user-initiated change, not initial load
+                if (data.selectedField !== selectedField) {
+                    setExpression('');
+                    setValue('');
+                }
+            }
+        } else if (isInitialized) {
             setAvailableExpressions([]);
         }
-    }, [selectedField, availableFields]);
+    }, [selectedField, availableFields, isInitialized, data.selectedField]);
 
     // Validate all fields and update node data using React Flow's approach
     useEffect(() => {
