@@ -1,0 +1,47 @@
+[
+  {
+    "WorkflowName": "CommissionCalculation",
+    "Rules": [
+      {
+        "RuleName": "HighPerformerFixedCommission",
+        "SuccessEvent": "High Performer - Fixed Commission Applied",
+        "ErrorMessage": "Not a high performer",
+        "Expression": "metrics.TargetAchievement >= 120 AND metrics.AttendancePercentage >= 95",
+        "RuleExpressionType": "LambdaExpression",
+        "Properties": {
+          "CommissionType": "fixed",
+          "CommissionAmount": "5000"
+        }
+      },
+      {
+        "RuleName": "StandardPercentageCommission",
+        "SuccessEvent": "Standard Commission - Percentage Based",
+        "ErrorMessage": "Does not meet standard criteria",
+        "Expression": "metrics.TargetAchievement >= 80 AND metrics.TargetAchievement < 120 AND metrics.AttendancePercentage >= 85",
+        "RuleExpressionType": "LambdaExpression",
+        "Properties": {
+          "CommissionType": "percentage",
+          "Percentage": "5",
+          "MinAmount": "500",
+          "MaxAmount": "10000"
+        }
+      }
+    ]
+  },
+  {
+    "WorkflowName": "BonusCalculation",
+    "Rules": [
+      {
+        "RuleName": "QuarterlyPerformanceBonus",
+        "SuccessEvent": "Quarterly Bonus Awarded",
+        "ErrorMessage": "Quarterly targets not met",
+        "Expression": "metrics.TargetAchievement >= 110 AND metrics.StoreTargetAchievement >= 100",
+        "RuleExpressionType": "LambdaExpression",
+        "Properties": {
+          "CommissionType": "fixed",
+          "CommissionAmount": "10000"
+        }
+      }
+    ]
+  }
+]
