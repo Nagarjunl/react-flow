@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SideBar = ({ onAddNode, onAddConditionToGroup, nodes, selectedGroupId, setSelectedGroupId, onGenerateJson, onLoadFromJson, onSaveFlow, onViewFlowJson }) => {
+const SideBar = ({ onAddNode, onAddConditionToGroup, onAddOperatorToGroup, nodes, selectedGroupId, setSelectedGroupId, onGenerateJson, onLoadFromJson, onSaveFlow, onViewFlowJson }) => {
     const nodeTypes = [
         {
             type: 'initial',
@@ -342,6 +342,7 @@ const SideBar = ({ onAddNode, onAddConditionToGroup, nodes, selectedGroupId, set
                         style={{
                             width: '100%',
                             padding: '10px',
+                            marginBottom: '8px',
                             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                             color: 'white',
                             border: 'none',
@@ -367,6 +368,38 @@ const SideBar = ({ onAddNode, onAddConditionToGroup, nodes, selectedGroupId, set
                     >
                         <span>➕</span>
                         <span>Add Condition</span>
+                    </button>
+
+                    <button
+                        onClick={() => onAddOperatorToGroup(selectedGroup.id)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 1px 3px rgba(245, 158, 11, 0.2)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-1px)';
+                            e.target.style.boxShadow = '0 2px 6px rgba(245, 158, 11, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 1px 3px rgba(245, 158, 11, 0.2)';
+                        }}
+                    >
+                        <span>🔗</span>
+                        <span>Add Operator</span>
                     </button>
                 </div>
             )}

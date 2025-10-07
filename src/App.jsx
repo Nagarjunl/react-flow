@@ -54,6 +54,32 @@ export default function App() {
         setNodes((nds) => [...nds, conditionNode]);
     }, [setNodes]);
 
+    const onAddOperatorToGroup = useCallback((parentId) => {
+        const operatorId = `conditionalOperator-${Date.now()}`;
+        const operatorNode = {
+            id: operatorId,
+            type: 'conditionalOperator',
+            position: { x: 20, y: 120 }, // Position below conditions
+            parentId: parentId,
+            extent: 'parent',
+            data: {
+                onChange: (newData) => {
+                    setNodes((nds) =>
+                        nds.map((node) =>
+                            node.id === operatorId
+                                ? { ...node, data: { ...node.data, ...newData } }
+                                : node
+                        )
+                    );
+                },
+                operator: '',
+                isValid: false
+            }
+        };
+
+        setNodes((nds) => [...nds, operatorNode]);
+    }, [setNodes]);
+
     const onAddNode = useCallback((nodeType) => {
         // Handle condition node with context awareness
         if (nodeType === 'condition') {
@@ -63,6 +89,17 @@ export default function App() {
             }
             // Add condition to selected group
             onAddConditionToGroup(selectedGroupId);
+            return;
+        }
+
+        // Handle conditional operator node with context awareness
+        if (nodeType === 'conditionalOperator') {
+            if (!selectedGroupId) {
+                alert('Please select a group first by clicking on a Rule or Action group, then add an operator.');
+                return;
+            }
+            // Add operator to selected group
+            onAddOperatorToGroup(selectedGroupId);
             return;
         }
 
@@ -195,7 +232,7 @@ export default function App() {
         }
 
         setNodes((nds) => [...nds, ...newNodes]);
-    }, [nodeCounter, setNodes, selectedGroupId, onAddConditionToGroup]);
+    }, [nodeCounter, setNodes, selectedGroupId, onAddConditionToGroup, onAddOperatorToGroup]);
 
     const onNodeClick = useCallback((event, node) => {
         // Handle group selection
@@ -353,6 +390,7 @@ export default function App() {
                 <SideBar
                     onAddNode={onAddNode}
                     onAddConditionToGroup={onAddConditionToGroup}
+                    onAddOperatorToGroup={onAddOperatorToGroup}
                     nodes={nodes}
                     selectedGroupId={selectedGroupId}
                     setSelectedGroupId={setSelectedGroupId}
