@@ -76,14 +76,24 @@ export default function App() {
         console.log('Pane clicked, group deselected');
     }, []);
 
-    // Standard React Flow nodes change handler with orphaned node cleanup
+    // React Flow nodes change handler
     const onNodesChange = useCallback((changes) => {
         setNodes((nds) => {
-            // First apply the standard React Flow changes
+            // Apply React Flow changes
             let updatedNodes = applyNodeChanges(changes, nds);
+
+            // Clear selectedGroupId if the selected group was deleted
+            const deletedNodeIds = changes
+                .filter(change => change.type === 'remove')
+                .map(change => change.id);
+
+            if (deletedNodeIds.includes(selectedGroupId)) {
+                setSelectedGroupId(null);
+            }
+
             return updatedNodes;
         });
-    }, [setNodes]);
+    }, [setNodes, selectedGroupId, setSelectedGroupId]);
 
     // Standard React Flow edges change handler
     const onEdgesChange = useCallback(
@@ -202,6 +212,7 @@ export default function App() {
                         onAddConditionToGroup={onAddConditionToGroup}
                         onAddOperatorToGroup={onAddOperatorToGroup}
                         nodes={nodes}
+                        edges={edges}
                         selectedGroupId={selectedGroupId}
                         setSelectedGroupId={setSelectedGroupId}
                         onGenerateJson={handleGenerateJson}

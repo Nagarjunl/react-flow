@@ -22,7 +22,7 @@ import {
     Group as GroupIcon
 } from '@mui/icons-material';
 
-const SideBar = ({ onAddNode, onAddConditionToGroup, onAddOperatorToGroup, nodes, selectedGroupId, setSelectedGroupId, onGenerateJson, onLoadFromJson, onSaveFlow, onViewFlowJson }) => {
+const SideBar = ({ onAddNode, onAddConditionToGroup, onAddOperatorToGroup, nodes, edges, selectedGroupId, setSelectedGroupId, onGenerateJson, onLoadFromJson, onSaveFlow, onViewFlowJson }) => {
     const nodeTypes = [
         {
             type: 'initial',
@@ -458,6 +458,73 @@ const SideBar = ({ onAddNode, onAddConditionToGroup, onAddOperatorToGroup, nodes
                     </List>
                 </Paper>
             )}
+
+            {/* Nodes and Edges Count Display */}
+            <Paper
+                elevation={1}
+                sx={{
+                    p: 2,
+                    backgroundColor: '#f1f5f9',
+                    borderRadius: 2,
+                    border: '1px solid #cbd5e1',
+                    mt: 'auto' // Push to bottom
+                }}
+            >
+                <Typography
+                    variant="subtitle2"
+                    sx={{
+                        color: '#475569',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        mb: 1,
+                        textAlign: 'center'
+                    }}
+                >
+                    📊 Flow Statistics
+                </Typography>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+                    <Chip
+                        label={`Nodes: ${nodes.length}`}
+                        size="small"
+                        sx={{
+                            backgroundColor: '#3b82f6',
+                            color: 'white',
+                            fontSize: '0.6875rem',
+                            fontWeight: 600,
+                            '& .MuiChip-label': {
+                                px: 1
+                            }
+                        }}
+                    />
+                    <Chip
+                        label={`Edges: ${edges.length}`}
+                        size="small"
+                        sx={{
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            fontSize: '0.6875rem',
+                            fontWeight: 600,
+                            '& .MuiChip-label': {
+                                px: 1
+                            }
+                        }}
+                    />
+                </Box>
+
+                <Typography
+                    variant="caption"
+                    sx={{
+                        display: 'block',
+                        color: '#64748b',
+                        textAlign: 'center',
+                        mt: 1,
+                        fontSize: '0.625rem'
+                    }}
+                >
+                    Total elements in flow
+                </Typography>
+            </Paper>
         </Box>
     );
 };
