@@ -51,7 +51,7 @@ const SideBar = ({ onAddNode, onAddConditionToGroup, onAddOperatorToGroup, nodes
         .filter(node => node.type === 'resizableGroup')
         .map(node => ({
             id: node.id,
-            label: node.data?.label || `Group ${node.id}`
+            label: node.data?.label || (node.id.startsWith('resizableRuleGroup') ? 'Rule Group' : 'Action Group')
         }));
 
     const selectedGroup = availableGroups.find(group => group.id === selectedGroupId);

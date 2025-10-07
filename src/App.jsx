@@ -30,7 +30,7 @@ export default function App() {
         const conditionNode = {
             id: conditionId,
             type: 'condition',
-            position: { x: 20, y: 80 },
+            position: { x: 20, y: 80 }, // Relative to parent group
             parentId: parentId,
             extent: 'parent',
             data: {
@@ -119,13 +119,17 @@ export default function App() {
 
         let newNodes = [];
 
-        if (nodeType === 'rule' || nodeType === 'resizableGroup') {
+        if (nodeType === 'resizableGroup') {
             // Create Rule group container with resizable functionality
-            const ruleGroupId = newNodeId;
+            const ruleGroupId = `resizableRuleGroup-${nodeCounter.resizableGroup + 1}`;
+            const newCounter = { ...nodeCounter, resizableGroup: nodeCounter.resizableGroup + 1 };
+            setNodeCounter(newCounter);
             const ruleGroup = {
                 id: ruleGroupId,
                 type: 'resizableGroup',
                 position: { x: 50, y: 50 }, // Fixed position to avoid covering viewport
+                parentId: selectedGroupId || undefined, // Nest under selected group if available
+                extent: selectedGroupId ? 'parent' : undefined, // Set extent if nested
                 style: {
                     width: 300,
                     height: 200
@@ -164,11 +168,16 @@ export default function App() {
             setSelectedGroupId(ruleGroupId); // Auto-select the new group
         } else if (nodeType === 'action') {
             // Create Action group container with resizable functionality
-            const actionGroupId = newNodeId;
+            const actionGroupId = `resizableActionGroup-${nodeCounter.resizableGroup + 1}`;
+            const newCounter = { ...nodeCounter, resizableGroup: nodeCounter.resizableGroup + 1 };
+            setNodeCounter(newCounter);
+
             const actionGroup = {
                 id: actionGroupId,
                 type: 'resizableGroup',
-                position: { x: 50, y: 50 }, // Fixed position to avoid covering viewport
+                position: { x: 20, y: 150 }, // Position within parent if selected
+                parentId: selectedGroupId || undefined, // Nest under selected group if available
+                extent: selectedGroupId ? 'parent' : undefined, // Set extent if nested
                 style: {
                     width: 300,
                     height: 200
@@ -180,35 +189,32 @@ export default function App() {
                 }
             };
 
-            newNodes = [actionGroup];
-            setSelectedGroupId(actionGroupId); // Auto-select the new group
-
-            // Add Action Name child node separately after group is created
-            setTimeout(() => {
-                const actionNameId = `${actionGroupId}-name`;
-                const actionNameNode = {
-                    id: actionNameId,
-                    type: 'actionName',
-                    position: { x: 10, y: 10 }, // Relative to parent
-                    parentId: actionGroupId,
-                    extent: 'parent', // This is crucial for proper parent-child relationship
-                    data: {
-                        actionType: 'onSuccess', // Fixed case to match actionTypes
-                        actionName: '',
-                        isValid: false,
-                        onChange: (newData) => {
-                            setNodes((nds) =>
-                                nds.map((node) =>
-                                    node.id === actionGroupId
-                                        ? { ...node, data: { ...node.data, ...newData } }
-                                        : node
-                                )
-                            );
-                        }
+            // Create Action Name child node
+            const actionNameId = `${actionGroupId}-name`;
+            const actionNameNode = {
+                id: actionNameId,
+                type: 'actionName',
+                position: { x: 10, y: 10 }, // Relative to parent
+                parentId: actionGroupId,
+                extent: 'parent', // This is crucial for proper parent-child relationship
+                data: {
+                    actionType: 'onSuccess', // Fixed case to match actionTypes
+                    actionName: '',
+                    isValid: false,
+                    onChange: (newData) => {
+                        setNodes((nds) =>
+                            nds.map((node) =>
+                                node.id === actionGroupId
+                                    ? { ...node, data: { ...node.data, ...newData } }
+                                    : node
+                            )
+                        );
                     }
-                };
-                setNodes((nds) => [...nds, actionNameNode]);
-            }, 0);
+                }
+            };
+
+            newNodes = [actionGroup, actionNameNode];
+            setSelectedGroupId(actionGroupId); // Auto-select the new group
         } else {
             // For initial, conditionalOperator, and other nodes
             const newNode = {
