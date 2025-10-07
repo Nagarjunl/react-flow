@@ -450,6 +450,56 @@ export default function App() {
         document.body.removeChild(input);
     }, [reactFlowInstance, setNodes, setEdges]);
 
+    // MiniMap color functions
+    const getMiniMapNodeColor = useCallback((node) => {
+        switch (node.type) {
+            case 'resizableGroup':
+                // Rule groups - purple theme
+                return '#8b5cf6';
+            case 'initial':
+                // Initial nodes - blue theme
+                return '#3b82f6';
+            case 'condition':
+                // Condition nodes - red theme
+                return '#ef4444';
+            case 'action':
+                // Action nodes - green theme
+                return '#10b981';
+            case 'conditionalOperator':
+                // Operator nodes - orange theme
+                return '#f97316';
+            case 'ruleName':
+                // Rule name nodes - purple accent
+                return '#a855f7';
+            case 'actionName':
+                // Action name nodes - green accent
+                return '#10b981';
+            default:
+                return '#6b7280';
+        }
+    }, []);
+
+    const getMiniMapNodeStrokeColor = useCallback((node) => {
+        switch (node.type) {
+            case 'resizableGroup':
+                return '#6d28d9';
+            case 'initial':
+                return '#1d4ed8';
+            case 'condition':
+                return '#dc2626';
+            case 'action':
+                return '#ea580c';
+            case 'conditionalOperator':
+                return '#059669';
+            case 'ruleName':
+                return '#7c3aed';
+            case 'actionName':
+                return '#b91c1c';
+            default:
+                return '#374151';
+        }
+    }, []);
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -515,53 +565,8 @@ export default function App() {
                             <Background color="#f0f0f0" />
                             <Controls />
                             <MiniMap
-                                nodeColor={(n) => {
-                                    switch (n.type) {
-                                        case 'resizableGroup':
-                                            // Rule groups - purple theme
-                                            return '#8b5cf6';
-                                        case 'initial':
-                                            // Initial nodes - blue theme
-                                            return '#3b82f6';
-                                        case 'condition':
-                                            // Condition nodes - red theme
-                                            return '#ef4444';
-                                        case 'action':
-                                            // Action nodes - green theme
-                                            return '#10b981';
-                                        case 'conditionalOperator':
-                                            // Operator nodes - orange theme
-                                            return '#f97316';
-                                        case 'ruleName':
-                                            // Rule name nodes - purple accent
-                                            return '#a855f7';
-                                        case 'actionName':
-                                            // Action name nodes - red accent
-                                            return '#10b981';
-                                        default:
-                                            return '#6b7280';
-                                    }
-                                }}
-                                nodeStrokeColor={(n) => {
-                                    switch (n.type) {
-                                        case 'resizableGroup':
-                                            return '#6d28d9';
-                                        case 'initial':
-                                            return '#1d4ed8';
-                                        case 'condition':
-                                            return '#dc2626';
-                                        case 'action':
-                                            return '#ea580c';
-                                        case 'conditionalOperator':
-                                            return '#059669';
-                                        case 'ruleName':
-                                            return '#7c3aed';
-                                        case 'actionName':
-                                            return '#b91c1c';
-                                        default:
-                                            return '#374151';
-                                    }
-                                }}
+                                nodeColor={getMiniMapNodeColor}
+                                nodeStrokeColor={getMiniMapNodeStrokeColor}
                                 nodeBorderRadius={3}
                                 nodeStrokeWidth={2}
                                 zoomable

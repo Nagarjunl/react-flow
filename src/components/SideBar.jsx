@@ -46,19 +46,19 @@ const SideBar = ({ onAddNode, onAddConditionToGroup, onAddOperatorToGroup, nodes
             type: 'condition',
             label: 'Condition',
             icon: '🔍',
-            color: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+            color: 'red'
         },
         {
             type: 'action',
             label: 'Action',
             icon: '⚡',
-            color: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+            color: '#10b981'
         },
         {
             type: 'conditionalOperator',
             label: 'Operator',
             icon: '🔗',
-            color: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)'
+            color: 'orange'
         },
         // {
         //     type: 'actionName',
