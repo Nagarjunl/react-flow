@@ -11,7 +11,6 @@ export const nodeTypes = {
 // Import node components
 import InitialNode from '../components/nodes/InitialNode';
 import ConditionNode from '../components/nodes/ConditionNode';
-import ActionNode from '../components/nodes/ActionNode';
 import ConditionalOperatorNode from '../components/nodes/ConditionalOperatorNode';
 import RuleNameNode from '../components/nodes/RuleNameNode';
 import ActionNameNode from '../components/nodes/ActionNameNode';
@@ -21,7 +20,6 @@ import ResizableGroupNode from '../components/nodes/ResizableGroupNode';
 export const nodeComponents = {
     initial: InitialNode,
     condition: ConditionNode,
-    action: ActionNode,
     conditionalOperator: ConditionalOperatorNode,
     ruleName: RuleNameNode,
     actionName: ActionNameNode,
