@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, addEdge, useNodesState, useEdgesState, ReactFlowProvider } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, addEdge, useNodesState, useEdgesState, ReactFlowProvider, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { nodeComponents } from './types/nodeTypes';
 import SideBar from './components/SideBar';
@@ -36,8 +36,8 @@ const theme = createTheme({
 });
 
 export default function App() {
-    const [nodes, setNodes, useNodesChange] = useNodesState([]);
-    const [edges, setEdges, useEdgesChange] = useEdgesState([]);
+    const [nodes, setNodes] = useNodesState([]);
+    const [edges, setEdges] = useEdgesState([]);
     const [selectedGroupId, setSelectedGroupId] = useState(null);
     const [isJsonDrawerOpen, setIsJsonDrawerOpen] = useState(false);
     const [generatedJson, setGeneratedJson] = useState('');
@@ -55,6 +55,14 @@ export default function App() {
     }, [setEdges]);
 
     const onAddConditionToGroup = useCallback((parentId) => {
+        // Validate that the parent group still exists
+        const parentExists = nodes.some(node => node.id === parentId && node.type === 'resizableGroup');
+        if (!parentExists) {
+            alert('The selected group no longer exists. Please select a valid group first.');
+            setSelectedGroupId(null);
+            return;
+        }
+
         const conditionId = `condition-${Date.now()}`;
         const conditionNode = {
             id: conditionId,
@@ -81,9 +89,17 @@ export default function App() {
         };
 
         setNodes((nds) => [...nds, conditionNode]);
-    }, [setNodes]);
+    }, [setNodes, nodes, setSelectedGroupId]);
 
     const onAddOperatorToGroup = useCallback((parentId) => {
+        // Validate that the parent group still exists
+        const parentExists = nodes.some(node => node.id === parentId && node.type === 'resizableGroup');
+        if (!parentExists) {
+            alert('The selected group no longer exists. Please select a valid group first.');
+            setSelectedGroupId(null);
+            return;
+        }
+
         const operatorId = `conditionalOperator-${Date.now()}`;
         const operatorNode = {
             id: operatorId,
@@ -107,7 +123,7 @@ export default function App() {
         };
 
         setNodes((nds) => [...nds, operatorNode]);
-    }, [setNodes]);
+    }, [setNodes, nodes, setSelectedGroupId]);
 
     const onAddNode = useCallback((nodeType) => {
         // Handle condition node with context awareness
@@ -290,6 +306,21 @@ export default function App() {
         console.log('Pane clicked, group deselected');
     }, []);
 
+    // Standard React Flow nodes change handler with orphaned node cleanup
+    const onNodesChange = useCallback((changes) => {
+        setNodes((nds) => {
+            // First apply the standard React Flow changes
+            let updatedNodes = applyNodeChanges(changes, nds);
+            return updatedNodes;
+        });
+    }, [setNodes, setSelectedGroupId]);
+
+    // Standard React Flow edges change handler
+    const onEdgesChange = useCallback(
+        (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
+        [setEdges]
+    );
+
     const handleGenerateJson = useCallback(() => {
         try {
             const jsonData = generateRuleEngineJson(nodes, edges);
@@ -467,8 +498,8 @@ export default function App() {
                                 return node;
                             })}
                             edges={edges}
-                            onNodesChange={useNodesChange}
-                            onEdgesChange={useEdgesChange}
+                            onNodesChange={onNodesChange}
+                            onEdgesChange={onEdgesChange}
                             onConnect={onConnect}
                             onNodeClick={onNodeClick}
                             onEdgeClick={onEdgeClick}
