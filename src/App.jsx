@@ -515,19 +515,61 @@ export default function App() {
                             <Background color="#f0f0f0" />
                             <Controls />
                             <MiniMap
-                                nodeStrokeColor={(n) => {
-                                    if (n.type === 'resizableGroup') return '#1a192b';
-                                    if (n.type === 'initial') return '#0041d0';
-                                    if (n.type === 'condition') return '#ff0072';
-                                    if (n.type === 'action') return '#ffa500';
-                                    if (n.type === 'conditionalOperator') return '#1a192b';
-                                    return '#eee';
-                                }}
                                 nodeColor={(n) => {
-                                    if (n.type === 'resizableGroup') return '#fff';
-                                    return '#fff';
+                                    switch (n.type) {
+                                        case 'resizableGroup':
+                                            // Rule groups - purple theme
+                                            return '#8b5cf6';
+                                        case 'initial':
+                                            // Initial nodes - blue theme
+                                            return '#3b82f6';
+                                        case 'condition':
+                                            // Condition nodes - red theme
+                                            return '#ef4444';
+                                        case 'action':
+                                            // Action nodes - green theme
+                                            return '#10b981';
+                                        case 'conditionalOperator':
+                                            // Operator nodes - orange theme
+                                            return '#f97316';
+                                        case 'ruleName':
+                                            // Rule name nodes - purple accent
+                                            return '#a855f7';
+                                        case 'actionName':
+                                            // Action name nodes - red accent
+                                            return '#10b981';
+                                        default:
+                                            return '#6b7280';
+                                    }
                                 }}
-                                nodeBorderRadius={2}
+                                nodeStrokeColor={(n) => {
+                                    switch (n.type) {
+                                        case 'resizableGroup':
+                                            return '#6d28d9';
+                                        case 'initial':
+                                            return '#1d4ed8';
+                                        case 'condition':
+                                            return '#dc2626';
+                                        case 'action':
+                                            return '#ea580c';
+                                        case 'conditionalOperator':
+                                            return '#059669';
+                                        case 'ruleName':
+                                            return '#7c3aed';
+                                        case 'actionName':
+                                            return '#b91c1c';
+                                        default:
+                                            return '#374151';
+                                    }
+                                }}
+                                nodeBorderRadius={3}
+                                nodeStrokeWidth={2}
+                                zoomable
+                                pannable
+                                style={{
+                                    backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                                    border: '1px solid #374151'
+                                }}
                             />
                         </ReactFlow>
                     </Box>
