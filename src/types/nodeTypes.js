@@ -10,7 +10,6 @@ export const nodeTypes = {
 
 // Import node components
 import InitialNode from '../components/nodes/InitialNode';
-import RuleNode from '../components/nodes/RuleNode';
 import ConditionNode from '../components/nodes/ConditionNode';
 import ActionNode from '../components/nodes/ActionNode';
 import ConditionalOperatorNode from '../components/nodes/ConditionalOperatorNode';
@@ -21,7 +20,6 @@ import ResizableGroupNode from '../components/nodes/ResizableGroupNode';
 // Export node components for React Flow
 export const nodeComponents = {
     initial: InitialNode,
-    rule: RuleNode,
     condition: ConditionNode,
     action: ActionNode,
     conditionalOperator: ConditionalOperatorNode,

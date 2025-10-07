@@ -15,7 +15,7 @@ export default function App() {
     const [reactFlowInstance, setReactFlowInstance] = useState(null);
     const [nodeCounter, setNodeCounter] = useState({
         initial: 0,
-        rule: 0,
+        resizableGroup: 0,
         condition: 0,
         action: 0,
         conditionalOperator: 0
@@ -107,6 +107,7 @@ export default function App() {
                 type: 'ruleName',
                 position: { x: 10, y: 10 }, // Relative to parent
                 parentId: ruleGroupId,
+                extent: 'parent',
                 data: {
                     ruleName: '',
                     isValid: false,
@@ -153,8 +154,9 @@ export default function App() {
                     type: 'actionName',
                     position: { x: 10, y: 10 }, // Relative to parent
                     parentId: actionGroupId,
+                    extent: 'parent', // This is crucial for proper parent-child relationship
                     data: {
-                        actionType: 'OnSuccess',
+                        actionType: 'onSuccess', // Fixed case to match actionTypes
                         actionName: '',
                         isValid: false,
                         onChange: (newData) => {
@@ -239,6 +241,23 @@ export default function App() {
     const handleJsonDownload = useCallback(() => {
         console.log('JSON downloaded');
     }, []);
+
+    // View Flow JSON - Shows the raw React Flow JSON in the drawer
+    const handleViewFlowJson = useCallback(() => {
+        if (reactFlowInstance) {
+            try {
+                const flowJson = reactFlowInstance.toObject();
+                const jsonString = JSON.stringify(flowJson, null, 2);
+                setGeneratedJson(jsonString);
+                setIsJsonDrawerOpen(true);
+            } catch (error) {
+                console.error('Error generating flow JSON:', error);
+                alert(`Error generating flow JSON: ${error.message}`);
+            }
+        } else {
+            alert('Flow instance not available. Please try again.');
+        }
+    }, [reactFlowInstance, setGeneratedJson, setIsJsonDrawerOpen]);
 
     // Save Flow - Downloads combined workflow file (ruleJson + flowJson)
     const handleSaveFlow = useCallback(() => {
@@ -340,6 +359,7 @@ export default function App() {
                     onGenerateJson={handleGenerateJson}
                     onLoadFromJson={handleLoadFromJson}
                     onSaveFlow={handleSaveFlow}
+                    onViewFlowJson={handleViewFlowJson}
                 />
 
                 <div style={{ flex: 1, position: 'relative' }}>
