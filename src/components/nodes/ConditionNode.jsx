@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { nodeColors, expressionSymbols } from '../../types/nodeTypes';
 import { tableSchema } from '../../constants/constant';
+import {
+    Box,
+    Typography,
+    TextField,
+    Autocomplete,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Alert
+} from '@mui/material';
 
 const ConditionNode = ({ data, isConnectable, id }) => {
     const [selectedTable, setSelectedTable] = useState(data.selectedTable || '');
@@ -80,17 +91,7 @@ const ConditionNode = ({ data, isConnectable, id }) => {
         });
     }, [selectedTable, selectedField, expression, value, id, updateNodeData]);
 
-    const handleTableChange = (e) => {
-        setSelectedTable(e.target.value);
-    };
 
-    const handleFieldChange = (e) => {
-        setSelectedField(e.target.value);
-    };
-
-    const handleExpressionChange = (e) => {
-        setExpression(e.target.value);
-    };
 
     const handleValueChange = (e) => {
         setValue(e.target.value);
@@ -121,129 +122,182 @@ const ConditionNode = ({ data, isConnectable, id }) => {
     };
 
     return (
-        <div
-            style={{
+        <Box
+            sx={{
                 background: `linear-gradient(135deg, ${nodeColors.condition} 0%, ${nodeColors.condition}dd 100%)`,
                 color: 'white',
-                padding: '15px',
-                borderRadius: '8px',
-                minWidth: '280px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                p: 2,
+                borderRadius: 2,
+                minWidth: '320px',
+                boxShadow: 3,
                 border: isValid ? '2px solid transparent' : '2px solid #ef4444',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                position: 'relative'
             }}
         >
-            <div style={{ marginBottom: '15px', fontWeight: 'bold', fontSize: '14px' }}>
+            <Typography
+                variant="subtitle2"
+                sx={{
+                    mb: 2,
+                    fontWeight: 'bold',
+                    color: 'white'
+                }}
+            >
                 🔍 Condition Node
-            </div>
+            </Typography>
 
-            {/* 2x2 Grid Layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {/* 2x2 Grid Layout using MUI Grid */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                 {/* Table Selection */}
-                <div>
-                    <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>
-                        Table *
-                    </label>
-                    <select
+                <Box>
+                    <Autocomplete
+                        size="small"
+                        options={Object.keys(tableSchema)}
                         value={selectedTable}
-                        onChange={handleTableChange}
-                        style={{
-                            width: '100%',
-                            padding: '8px',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            backgroundColor: 'white',
-                            color: '#333'
+                        onChange={(event, newValue) => {
+                            setSelectedTable(newValue || '');
                         }}
-                    >
-                        <option value="">Select table</option>
-                        {Object.keys(tableSchema).map(table => (
-                            <option key={table} value={table}>{table}</option>
-                        ))}
-                    </select>
-                </div>
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Table *"
+                                variant="outlined"
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        backgroundColor: 'white',
+                                        fontSize: '0.75rem',
+                                        '& .MuiOutlinedInput-input': {
+                                            color: '#333'
+                                        }
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        fontSize: '0.75rem',
+                                        color: '#666'
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                        color: '#666'
+                                    }
+                                }}
+                            />
+                        )}
+                    />
+                </Box>
 
                 {/* Field Selection */}
-                <div>
-                    <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>
-                        Field *
-                    </label>
-                    <select
+                <Box>
+                    <Autocomplete
+                        size="small"
+                        options={availableFields.map(field => field.name)}
                         value={selectedField}
-                        onChange={handleFieldChange}
-                        disabled={!selectedTable}
-                        style={{
-                            width: '100%',
-                            padding: '8px',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            backgroundColor: selectedTable ? 'white' : '#f5f5f5',
-                            color: '#333'
+                        onChange={(event, newValue) => {
+                            setSelectedField(newValue || '');
                         }}
-                    >
-                        <option value="">Select field</option>
-                        {availableFields.map(field => (
-                            <option key={field.name} value={field.name}>{field.name}</option>
-                        ))}
-                    </select>
-                </div>
+                        disabled={!selectedTable}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Field *"
+                                variant="outlined"
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        backgroundColor: selectedTable ? 'white' : '#f5f5f5',
+                                        fontSize: '0.75rem',
+                                        '& .MuiOutlinedInput-input': {
+                                            color: '#333'
+                                        }
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        fontSize: '0.75rem',
+                                        color: '#666'
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                        color: '#666'
+                                    }
+                                }}
+                            />
+                        )}
+                    />
+                </Box>
 
                 {/* Expression Selection */}
-                <div>
-                    <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>
-                        Expression *
-                    </label>
-                    <select
-                        value={expression}
-                        onChange={handleExpressionChange}
-                        disabled={!selectedField}
-                        style={{
-                            width: '100%',
-                            padding: '8px',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            backgroundColor: selectedField ? 'white' : '#f5f5f5',
-                            color: '#333'
+                <Box>
+                    <Autocomplete
+                        size="small"
+                        options={availableExpressions}
+                        getOptionLabel={(option) => option.label || ''}
+                        value={availableExpressions.find(expr => expr.value === expression) || null}
+                        onChange={(event, newValue) => {
+                            setExpression(newValue ? newValue.value : '');
                         }}
-                    >
-                        <option value="">Select expression</option>
-                        {availableExpressions.map(expr => (
-                            <option key={expr.value} value={expr.value}>{expr.label}</option>
-                        ))}
-                    </select>
-                </div>
+                        disabled={!selectedField}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Expression *"
+                                variant="outlined"
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        backgroundColor: selectedField ? 'white' : '#f5f5f5',
+                                        fontSize: '0.75rem',
+                                        '& .MuiOutlinedInput-input': {
+                                            color: '#333'
+                                        }
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                        fontSize: '0.75rem',
+                                        color: '#666'
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                        color: '#666'
+                                    }
+                                }}
+                            />
+                        )}
+                    />
+                </Box>
 
                 {/* Value Input */}
-                <div>
-                    <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>
-                        Value *
-                    </label>
-                    <input
+                <Box>
+                    <TextField
+                        size="small"
                         type={getInputType()}
                         value={value}
                         onChange={handleValueChange}
                         placeholder={getValuePlaceholder()}
                         disabled={!expression}
-                        style={{
-                            width: '100%',
-                            padding: '8px',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            backgroundColor: expression ? 'white' : '#f5f5f5',
-                            color: '#333'
+                        label="Value *"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: expression ? 'white' : '#f5f5f5',
+                                fontSize: '0.75rem',
+                                '& .MuiOutlinedInput-input': {
+                                    color: '#333'
+                                }
+                            },
+                            '& .MuiInputLabel-root': {
+                                fontSize: '0.75rem',
+                                color: '#666'
+                            }
                         }}
                     />
-                </div>
-            </div>
+                </Box>
+            </Box>
 
             {!isValid && (
-                <div style={{ color: '#ef4444', fontSize: '10px', marginTop: '8px' }}>
+                <Alert
+                    severity="error"
+                    sx={{
+                        mt: 1,
+                        fontSize: '0.7rem',
+                        '& .MuiAlert-message': {
+                            fontSize: '0.7rem'
+                        }
+                    }}
+                >
                     All fields are required
-                </div>
+                </Alert>
             )}
 
             <Handle
@@ -270,7 +324,7 @@ const ConditionNode = ({ data, isConnectable, id }) => {
                 }}
                 isConnectable={isConnectable}
             />
-        </div>
+        </Box>
     );
 };
 

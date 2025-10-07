@@ -1,15 +1,16 @@
 import React from 'react';
 import { NodeResizer } from '@xyflow/react';
+import { Box, Typography } from '@mui/material';
 
 const ResizableGroupNode = ({ data, selected }) => {
     return (
-        <div
-            style={{
+        <Box
+            sx={{
                 width: '100%',
                 height: '100%',
                 backgroundColor: data.backgroundColor || 'rgba(139, 92, 246, 0.1)',
                 border: data.border || '2px solid #8b5cf6',
-                borderRadius: '8px',
+                borderRadius: 2,
                 position: 'relative',
                 minWidth: 200,
                 minHeight: 150
@@ -22,21 +23,22 @@ const ResizableGroupNode = ({ data, selected }) => {
                 minHeight={150}
             />
             {data.label && (
-                <div
-                    style={{
+                <Typography
+                    variant="subtitle2"
+                    sx={{
                         position: 'absolute',
-                        top: '8px',
-                        left: '8px',
-                        fontSize: '12px',
+                        top: 1,
+                        left: 1,
+                        fontSize: '0.75rem',
                         fontWeight: 'bold',
                         color: '#8b5cf6',
                         pointerEvents: 'none'
                     }}
                 >
                     {data.label}
-                </div>
+                </Typography>
             )}
-        </div>
+        </Box>
     );
 };
 

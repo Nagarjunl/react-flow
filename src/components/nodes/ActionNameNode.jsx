@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { nodeColors, actionTypes } from '../../types/nodeTypes';
+import { Box, Typography, TextField, Autocomplete, Alert } from '@mui/material';
 
 const ActionNameNode = ({ data, isConnectable, id }) => {
     const [actionType, setActionType] = useState(data.actionType || '');
@@ -20,11 +21,6 @@ const ActionNameNode = ({ data, isConnectable, id }) => {
         });
     }, [id, updateNodeData]);
 
-    const handleActionTypeChange = useCallback((e) => {
-        const value = e.target.value;
-        setActionType(value);
-        validateFields(value, actionName);
-    }, [actionName, validateFields]);
 
     const handleActionNameChange = useCallback((e) => {
         const value = e.target.value;
@@ -33,14 +29,14 @@ const ActionNameNode = ({ data, isConnectable, id }) => {
     }, [actionType, validateFields]);
 
     return (
-        <div
-            style={{
+        <Box
+            sx={{
                 background: `linear-gradient(135deg, ${nodeColors.action} 0%, ${nodeColors.action}dd 100%)`,
                 color: 'white',
-                padding: '12px',
-                borderRadius: '6px',
+                p: 1.5,
+                borderRadius: 1.5,
                 minWidth: '200px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                boxShadow: 2,
                 border: isValid ? '1px solid transparent' : '1px solid #ef4444',
                 transition: 'all 0.2s ease',
                 position: 'relative'
@@ -58,61 +54,94 @@ const ActionNameNode = ({ data, isConnectable, id }) => {
                 }}
                 isConnectable={isConnectable}
             />
-            <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '12px' }}>
+
+            <Typography
+                variant="subtitle2"
+                sx={{
+                    mb: 1,
+                    fontWeight: 'bold',
+                    fontSize: '0.75rem',
+                    color: 'white'
+                }}
+            >
                 ⚡ Action
-            </div>
+            </Typography>
 
-            <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', fontSize: '10px', marginBottom: '2px' }}>
-                    Type *
-                </label>
-                <select
-                    value={actionType}
-                    onChange={handleActionTypeChange}
-                    style={{
-                        width: '100%',
-                        padding: '4px',
-                        border: '1px solid #ccc',
-                        borderRadius: '3px',
-                        fontSize: '10px',
-                        backgroundColor: 'white',
-                        color: '#333'
+            <Box sx={{ mb: 1 }}>
+                <Autocomplete
+                    size="small"
+                    options={actionTypes}
+                    getOptionLabel={(option) => option.label || ''}
+                    value={actionTypes.find(type => type.value === actionType) || null}
+                    onChange={(event, newValue) => {
+                        const value = newValue ? newValue.value : '';
+                        setActionType(value);
+                        validateFields(value, actionName);
                     }}
-                >
-                    <option value="">Select type</option>
-                    {actionTypes.map(type => (
-                        <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                </select>
-            </div>
-
-            <div>
-                <label style={{ display: 'block', fontSize: '10px', marginBottom: '2px' }}>
-                    Name *
-                </label>
-                <input
-                    type="text"
-                    value={actionName}
-                    onChange={handleActionNameChange}
-                    placeholder="Enter action name"
-                    style={{
-                        width: '100%',
-                        padding: '4px',
-                        border: '1px solid #ccc',
-                        borderRadius: '3px',
-                        fontSize: '10px',
-                        backgroundColor: 'white',
-                        color: '#333'
-                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Type *"
+                            variant="outlined"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    backgroundColor: 'white',
+                                    fontSize: '0.625rem',
+                                    '& .MuiOutlinedInput-input': {
+                                        color: '#333'
+                                    }
+                                },
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '0.625rem',
+                                    color: '#666'
+                                },
+                                '& .MuiSvgIcon-root': {
+                                    color: '#666'
+                                }
+                            }}
+                        />
+                    )}
                 />
-            </div>
+            </Box>
+
+            <TextField
+                size="small"
+                value={actionName}
+                onChange={handleActionNameChange}
+                placeholder="Enter action name"
+                label="Name *"
+                variant="outlined"
+                fullWidth
+                sx={{
+                    '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'white',
+                        fontSize: '0.625rem',
+                        '& .MuiOutlinedInput-input': {
+                            color: '#333'
+                        }
+                    },
+                    '& .MuiInputLabel-root': {
+                        fontSize: '0.625rem',
+                        color: '#666'
+                    }
+                }}
+            />
 
             {!isValid && (
-                <div style={{ color: '#ef4444', fontSize: '9px', marginTop: '4px' }}>
+                <Alert
+                    severity="error"
+                    sx={{
+                        mt: 0.5,
+                        fontSize: '0.6rem',
+                        '& .MuiAlert-message': {
+                            fontSize: '0.6rem'
+                        }
+                    }}
+                >
                     Both fields required
-                </div>
+                </Alert>
             )}
-        </div>
+        </Box>
     );
 };
 

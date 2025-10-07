@@ -1,70 +1,95 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { nodeColors, conditionalOperators } from '../../types/nodeTypes';
+import { Box, Typography, Autocomplete, TextField, Alert } from '@mui/material';
 
 const ConditionalOperatorNode = ({ data, isConnectable, id }) => {
     const [operator, setOperator] = useState(data.operator || '');
     const [isValid, setIsValid] = useState(true);
     const { updateNodeData } = useReactFlow();
 
-    const handleOperatorChange = useCallback((e) => {
-        const value = e.target.value;
-        setOperator(value);
-        const valid = value.trim() !== '';
-        setIsValid(valid);
-
-        // Update the node data using React Flow's recommended approach
-        updateNodeData(id, {
-            operator: value,
-            isValid: valid
-        });
-    }, [id, updateNodeData]);
 
     return (
-        <div
-            style={{
+        <Box
+            sx={{
                 background: `linear-gradient(135deg, ${nodeColors.conditionalOperator} 0%, ${nodeColors.conditionalOperator}dd 100%)`,
                 color: 'white',
-                padding: '15px',
-                borderRadius: '8px',
+                p: 2,
+                borderRadius: 2,
                 minWidth: '200px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                boxShadow: 3,
                 border: isValid ? '2px solid transparent' : '2px solid #ef4444',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                position: 'relative'
             }}
         >
-            <div style={{ marginBottom: '15px', fontWeight: 'bold', fontSize: '14px' }}>
+            <Typography
+                variant="subtitle2"
+                sx={{
+                    mb: 2,
+                    fontWeight: 'bold',
+                    color: 'white'
+                }}
+            >
                 🔗 Conditional Operator
-            </div>
+            </Typography>
 
-            <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>
-                    Operator *
-                </label>
-                <select
-                    value={operator}
-                    onChange={handleOperatorChange}
-                    style={{
-                        width: '100%',
-                        padding: '8px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        backgroundColor: 'white',
-                        color: '#333'
+            <Autocomplete
+                size="small"
+                options={conditionalOperators}
+                getOptionLabel={(option) => option.label || ''}
+                value={conditionalOperators.find(op => op.value === operator) || null}
+                onChange={(event, newValue) => {
+                    const value = newValue ? newValue.value : '';
+                    setOperator(value);
+                    const valid = value.trim() !== '';
+                    setIsValid(valid);
+
+                    // Update the node data using React Flow's recommended approach
+                    updateNodeData(id, {
+                        operator: value,
+                        isValid: valid
+                    });
+                }}
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        label="Operator *"
+                        variant="outlined"
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: 'white',
+                                fontSize: '0.75rem',
+                                '& .MuiOutlinedInput-input': {
+                                    color: '#333'
+                                }
+                            },
+                            '& .MuiInputLabel-root': {
+                                fontSize: '0.75rem',
+                                color: '#666'
+                            },
+                            '& .MuiSvgIcon-root': {
+                                color: '#666'
+                            }
+                        }}
+                    />
+                )}
+            />
+
+            {!isValid && (
+                <Alert
+                    severity="error"
+                    sx={{
+                        mt: 1,
+                        fontSize: '0.7rem',
+                        '& .MuiAlert-message': {
+                            fontSize: '0.7rem'
+                        }
                     }}
                 >
-                    <option value="">Select operator</option>
-                    {conditionalOperators.map(op => (
-                        <option key={op.value} value={op.value}>{op.label}</option>
-                    ))}
-                </select>
-                {!isValid && (
-                    <div style={{ color: '#ef4444', fontSize: '10px', marginTop: '4px' }}>
-                        Operator is required
-                    </div>
-                )}
-            </div>
+                    Operator is required
+                </Alert>
+            )}
 
             <Handle
                 type="target"
@@ -90,7 +115,7 @@ const ConditionalOperatorNode = ({ data, isConnectable, id }) => {
                 }}
                 isConnectable={isConnectable}
             />
-        </div>
+        </Box>
     );
 };
 

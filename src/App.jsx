@@ -5,6 +5,35 @@ import { nodeComponents } from './types/nodeTypes';
 import SideBar from './components/SideBar';
 import JsonDrawer from './components/JsonDrawer';
 import { generateRuleEngineJson } from './services/jsonGenerator';
+import { Box, ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+
+// Create MUI theme
+const theme = createTheme({
+    palette: {
+        mode: 'dark',
+        primary: {
+            main: '#3b82f6',
+        },
+        secondary: {
+            main: '#8b5cf6',
+        },
+        background: {
+            // default: '#f9fafb',
+        },
+    },
+    typography: {
+        fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    },
+    components: {
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    textTransform: 'none',
+                },
+            },
+        },
+    },
+});
 
 export default function App() {
     const [nodes, setNodes, useNodesChange] = useNodesState([]);
@@ -391,81 +420,97 @@ export default function App() {
     }, [reactFlowInstance, setNodes, setEdges]);
 
     return (
-        <ReactFlowProvider>
-            <div style={{ height: '100vh', width: '100vw', display: 'flex' }}>
-                <SideBar
-                    onAddNode={onAddNode}
-                    onAddConditionToGroup={onAddConditionToGroup}
-                    onAddOperatorToGroup={onAddOperatorToGroup}
-                    nodes={nodes}
-                    selectedGroupId={selectedGroupId}
-                    setSelectedGroupId={setSelectedGroupId}
-                    onGenerateJson={handleGenerateJson}
-                    onLoadFromJson={handleLoadFromJson}
-                    onSaveFlow={handleSaveFlow}
-                    onViewFlowJson={handleViewFlowJson}
-                />
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <ReactFlowProvider>
+                <Box
+                    sx={{
+                        height: '100vh',
+                        width: '100vw',
+                        display: 'flex',
+                        overflow: 'hidden'
+                    }}
+                >
+                    <SideBar
+                        onAddNode={onAddNode}
+                        onAddConditionToGroup={onAddConditionToGroup}
+                        onAddOperatorToGroup={onAddOperatorToGroup}
+                        nodes={nodes}
+                        selectedGroupId={selectedGroupId}
+                        setSelectedGroupId={setSelectedGroupId}
+                        onGenerateJson={handleGenerateJson}
+                        onLoadFromJson={handleLoadFromJson}
+                        onSaveFlow={handleSaveFlow}
+                        onViewFlowJson={handleViewFlowJson}
+                    />
 
-                <div style={{ flex: 1, position: 'relative' }}>
-                    <ReactFlow
-                        nodes={nodes.map(node => {
-                            // Add visual highlighting for selected groups
-                            if (node.type === 'resizableGroup' && node.id === selectedGroupId) {
-                                return {
-                                    ...node,
-                                    data: {
-                                        ...node.data,
-                                        border: '3px solid #22c55e',
-                                        boxShadow: '0 0 10px rgba(34, 197, 94, 0.5)'
-                                    }
-                                };
-                            }
-                            return node;
-                        })}
-                        edges={edges}
-                        onNodesChange={useNodesChange}
-                        onEdgesChange={useEdgesChange}
-                        onConnect={onConnect}
-                        onNodeClick={onNodeClick}
-                        onEdgeClick={onEdgeClick}
-                        onPaneClick={onPaneClick}
-                        onInit={setReactFlowInstance}
-                        nodeTypes={nodeComponents}
-                        nodesDraggable={true}
-                        nodesConnectable={true}
-                        elementsSelectable={true}
-                        fitView
-                        attributionPosition="bottom-left"
+                    <Box
+                        sx={{
+                            flex: 1,
+                            position: 'relative',
+                            // backgroundColor: '#f0f0f0'
+                        }}
                     >
-                        <Background color="#f0f0f0" />
-                        <Controls />
-                        <MiniMap
-                            nodeStrokeColor={(n) => {
-                                if (n.type === 'resizableGroup') return '#1a192b';
-                                if (n.type === 'initial') return '#0041d0';
-                                if (n.type === 'condition') return '#ff0072';
-                                if (n.type === 'action') return '#ffa500';
-                                if (n.type === 'conditionalOperator') return '#1a192b';
-                                return '#eee';
-                            }}
-                            nodeColor={(n) => {
-                                if (n.type === 'resizableGroup') return '#fff';
-                                return '#fff';
-                            }}
-                            nodeBorderRadius={2}
-                        />
-                    </ReactFlow>
-                </div>
+                        <ReactFlow
+                            nodes={nodes.map(node => {
+                                // Add visual highlighting for selected groups
+                                if (node.type === 'resizableGroup' && node.id === selectedGroupId) {
+                                    return {
+                                        ...node,
+                                        data: {
+                                            ...node.data,
+                                            border: '3px solid #22c55e',
+                                            boxShadow: '0 0 10px rgba(34, 197, 94, 0.5)'
+                                        }
+                                    };
+                                }
+                                return node;
+                            })}
+                            edges={edges}
+                            onNodesChange={useNodesChange}
+                            onEdgesChange={useEdgesChange}
+                            onConnect={onConnect}
+                            onNodeClick={onNodeClick}
+                            onEdgeClick={onEdgeClick}
+                            onPaneClick={onPaneClick}
+                            onInit={setReactFlowInstance}
+                            nodeTypes={nodeComponents}
+                            nodesDraggable={true}
+                            nodesConnectable={true}
+                            elementsSelectable={true}
+                            fitView
+                            attributionPosition="bottom-left"
+                        >
+                            <Background color="#f0f0f0" />
+                            <Controls />
+                            <MiniMap
+                                nodeStrokeColor={(n) => {
+                                    if (n.type === 'resizableGroup') return '#1a192b';
+                                    if (n.type === 'initial') return '#0041d0';
+                                    if (n.type === 'condition') return '#ff0072';
+                                    if (n.type === 'action') return '#ffa500';
+                                    if (n.type === 'conditionalOperator') return '#1a192b';
+                                    return '#eee';
+                                }}
+                                nodeColor={(n) => {
+                                    if (n.type === 'resizableGroup') return '#fff';
+                                    return '#fff';
+                                }}
+                                nodeBorderRadius={2}
+                            />
+                        </ReactFlow>
+                    </Box>
 
-                {/* JSON Drawer */}
-                <JsonDrawer
-                    isOpen={isJsonDrawerOpen}
-                    onClose={handleCloseJsonDrawer}
-                    jsonData={generatedJson}
-                    onCopy={handleJsonCopy}
-                    onDownload={handleJsonDownload}
-                />
-            </div>
-        </ReactFlowProvider>
+                    {/* JSON Drawer */}
+                    <JsonDrawer
+                        isOpen={isJsonDrawerOpen}
+                        onClose={handleCloseJsonDrawer}
+                        jsonData={generatedJson}
+                        onCopy={handleJsonCopy}
+                        onDownload={handleJsonDownload}
+                    />
+                </Box>
+            </ReactFlowProvider>
+        </ThemeProvider>
     );
 }

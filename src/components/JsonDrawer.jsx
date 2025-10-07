@@ -1,4 +1,21 @@
 import React, { useState } from 'react';
+import {
+    Drawer,
+    Box,
+    Typography,
+    IconButton,
+    Button,
+    Paper,
+    Divider,
+    Alert,
+    Snackbar
+} from '@mui/material';
+import {
+    Close as CloseIcon,
+    ContentCopy as CopyIcon,
+    Download as DownloadIcon,
+    Check as CheckIcon
+} from '@mui/icons-material';
 
 const JsonDrawer = ({ isOpen, onClose, jsonData, onCopy, onDownload }) => {
     const [copied, setCopied] = useState(false);
@@ -27,134 +44,184 @@ const JsonDrawer = ({ isOpen, onClose, jsonData, onCopy, onDownload }) => {
         if (onDownload) onDownload();
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div
-            style={{
-                position: 'fixed',
-                top: 0,
-                right: 0,
-                width: '400px',
-                height: '100vh',
-                background: '#1a1a1a',
-                borderLeft: '2px solid #333',
-                zIndex: 1000,
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '-4px 0 12px rgba(0, 0, 0, 0.3)',
-                transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
-                transition: 'transform 0.3s ease-in-out'
-            }}
-        >
-            {/* Header */}
-            <div
-                style={{
-                    padding: '20px',
-                    borderBottom: '1px solid #333',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    background: '#2a2a2a'
-                }}
-            >
-                <h3 style={{ margin: 0, color: '#fff', fontSize: '18px' }}>
-                    📄 Generated JSON
-                </h3>
-                <button
-                    onClick={onClose}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#fff',
-                        fontSize: '24px',
-                        cursor: 'pointer',
-                        padding: '5px'
-                    }}
-                >
-                    ×
-                </button>
-            </div>
-
-            {/* Actions */}
-            <div
-                style={{
-                    padding: '15px 20px',
-                    borderBottom: '1px solid #333',
-                    display: 'flex',
-                    gap: '10px'
-                }}
-            >
-                <button
-                    onClick={handleCopy}
-                    style={{
-                        background: copied ? '#22c55e' : '#3b82f6',
-                        color: 'white',
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        transition: 'background 0.2s'
-                    }}
-                >
-                    {copied ? '✓ Copied!' : '📋 Copy'}
-                </button>
-                <button
-                    onClick={handleDownload}
-                    style={{
-                        background: '#8b5cf6',
-                        color: 'white',
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '500'
-                    }}
-                >
-                    💾 Download
-                </button>
-            </div>
-
-            {/* JSON Content */}
-            <div
-                style={{
-                    flex: 1,
-                    padding: '20px',
-                    overflow: 'auto',
-                    background: '#1a1a1a'
-                }}
-            >
-                <pre
-                    style={{
+        <>
+            <Drawer
+                anchor="right"
+                open={isOpen}
+                onClose={onClose}
+                sx={{
+                    '& .MuiDrawer-paper': {
+                        width: 400,
+                        backgroundColor: '#1a1a1a',
                         color: '#e5e5e5',
-                        fontSize: '12px',
-                        lineHeight: '1.5',
-                        margin: 0,
-                        fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word'
-                    }}
-                >
-                    {jsonData}
-                </pre>
-            </div>
-
-            {/* Footer */}
-            <div
-                style={{
-                    padding: '15px 20px',
-                    borderTop: '1px solid #333',
-                    background: '#2a2a2a',
-                    color: '#888',
-                    fontSize: '12px'
+                        borderLeft: '2px solid #333'
+                    }
                 }}
             >
-                💡 Tip: Copy the JSON to use in your rule engine
-            </div>
-        </div>
+                {/* Header */}
+                <Box
+                    sx={{
+                        p: 2.5,
+                        borderBottom: '1px solid #333',
+                        backgroundColor: '#2a2a2a',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            color: '#fff',
+                            fontSize: '1.125rem',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                        }}
+                    >
+                        📄 Generated JSON
+                    </Typography>
+                    <IconButton
+                        onClick={onClose}
+                        sx={{
+                            color: '#fff',
+                            '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+
+                {/* Actions */}
+                <Box
+                    sx={{
+                        p: 2,
+                        borderBottom: '1px solid #333',
+                        display: 'flex',
+                        gap: 1.5
+                    }}
+                >
+                    <Button
+                        variant="contained"
+                        startIcon={copied ? <CheckIcon /> : <CopyIcon />}
+                        onClick={handleCopy}
+                        sx={{
+                            backgroundColor: copied ? '#22c55e' : '#3b82f6',
+                            color: 'white',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            textTransform: 'none',
+                            '&:hover': {
+                                backgroundColor: copied ? '#16a34a' : '#2563eb'
+                            }
+                        }}
+                    >
+                        {copied ? 'Copied!' : 'Copy'}
+                    </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={<DownloadIcon />}
+                        onClick={handleDownload}
+                        sx={{
+                            backgroundColor: '#8b5cf6',
+                            color: 'white',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            textTransform: 'none',
+                            '&:hover': {
+                                backgroundColor: '#7c3aed'
+                            }
+                        }}
+                    >
+                        Download
+                    </Button>
+                </Box>
+
+                {/* JSON Content */}
+                <Box
+                    sx={{
+                        flex: 1,
+                        p: 2.5,
+                        overflow: 'auto',
+                        backgroundColor: '#1a1a1a'
+                    }}
+                >
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            backgroundColor: '#0f0f0f',
+                            border: '1px solid #333',
+                            borderRadius: 1,
+                            p: 2
+                        }}
+                    >
+                        <Box
+                            component="pre"
+                            sx={{
+                                color: '#e5e5e5',
+                                fontSize: '0.75rem',
+                                lineHeight: 1.5,
+                                margin: 0,
+                                fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word',
+                                overflow: 'auto'
+                            }}
+                        >
+                            {jsonData}
+                        </Box>
+                    </Paper>
+                </Box>
+
+                {/* Footer */}
+                <Box
+                    sx={{
+                        p: 2,
+                        borderTop: '1px solid #333',
+                        backgroundColor: '#2a2a2a',
+                        color: '#888',
+                        fontSize: '0.75rem'
+                    }}
+                >
+                    <Alert
+                        severity="info"
+                        sx={{
+                            backgroundColor: 'transparent',
+                            color: '#888',
+                            fontSize: '0.75rem',
+                            '& .MuiAlert-icon': {
+                                color: '#888'
+                            },
+                            '& .MuiAlert-message': {
+                                fontSize: '0.75rem'
+                            }
+                        }}
+                    >
+                        💡 Tip: Copy the JSON to use in your rule engine
+                    </Alert>
+                </Box>
+            </Drawer>
+
+            {/* Copy Success Snackbar */}
+            <Snackbar
+                open={copied}
+                autoHideDuration={2000}
+                onClose={() => setCopied(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setCopied(false)}
+                    severity="success"
+                    sx={{ width: '100%' }}
+                >
+                    JSON copied to clipboard!
+                </Alert>
+            </Snackbar>
+        </>
     );
 };
 

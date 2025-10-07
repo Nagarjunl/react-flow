@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { nodeColors } from '../../types/nodeTypes';
+import { Box, Typography, TextField, Alert } from '@mui/material';
 
 const RuleNameNode = ({ data, isConnectable, id }) => {
     const [ruleName, setRuleName] = useState(data.ruleName || '');
@@ -21,14 +22,14 @@ const RuleNameNode = ({ data, isConnectable, id }) => {
     }, [id, updateNodeData]);
 
     return (
-        <div
-            style={{
+        <Box
+            sx={{
                 background: `linear-gradient(135deg, ${nodeColors.rule} 0%, ${nodeColors.rule}dd 100%)`,
                 color: 'white',
-                padding: '12px',
-                borderRadius: '6px',
+                p: 1.5,
+                borderRadius: 1.5,
                 minWidth: '200px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                boxShadow: 2,
                 border: isValid ? '1px solid transparent' : '1px solid #ef4444',
                 transition: 'all 0.2s ease',
                 position: 'relative'
@@ -46,33 +47,57 @@ const RuleNameNode = ({ data, isConnectable, id }) => {
                 }}
                 isConnectable={isConnectable}
             />
-            <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '12px' }}>
-                📋 Rule Name
-            </div>
 
-            <div>
-                <input
-                    type="text"
-                    value={ruleName}
-                    onChange={handleRuleNameChange}
-                    placeholder="Enter rule name"
-                    style={{
-                        width: '100%',
-                        padding: '6px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        fontSize: '11px',
+            <Typography
+                variant="subtitle2"
+                sx={{
+                    mb: 1,
+                    fontWeight: 'bold',
+                    fontSize: '0.75rem',
+                    color: 'white'
+                }}
+            >
+                📋 Rule Name
+            </Typography>
+
+            <TextField
+                size="small"
+                value={ruleName}
+                onChange={handleRuleNameChange}
+                placeholder="Enter rule name"
+                label="Rule Name *"
+                variant="outlined"
+                fullWidth
+                sx={{
+                    '& .MuiOutlinedInput-root': {
                         backgroundColor: 'white',
-                        color: '#333'
+                        fontSize: '0.6875rem',
+                        '& .MuiOutlinedInput-input': {
+                            color: '#333'
+                        }
+                    },
+                    '& .MuiInputLabel-root': {
+                        fontSize: '0.6875rem',
+                        color: '#666'
+                    }
+                }}
+            />
+
+            {!isValid && (
+                <Alert
+                    severity="error"
+                    sx={{
+                        mt: 0.5,
+                        fontSize: '0.6rem',
+                        '& .MuiAlert-message': {
+                            fontSize: '0.6rem'
+                        }
                     }}
-                />
-                {!isValid && (
-                    <div style={{ color: '#ef4444', fontSize: '9px', marginTop: '2px' }}>
-                        Required
-                    </div>
-                )}
-            </div>
-        </div>
+                >
+                    Required
+                </Alert>
+            )}
+        </Box>
     );
 };
 

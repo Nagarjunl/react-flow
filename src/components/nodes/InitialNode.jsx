@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { nodeColors } from '../../types/nodeTypes';
+import { Box, Typography, TextField, Alert } from '@mui/material';
 
 const InitialNode = ({ data, isConnectable, id }) => {
     const [workflowName, setWorkflowName] = useState(data.workflowName || '');
@@ -21,47 +22,67 @@ const InitialNode = ({ data, isConnectable, id }) => {
     }, [id, updateNodeData]);
 
     return (
-        <div
-            style={{
+        <Box
+            sx={{
                 background: `linear-gradient(135deg, ${nodeColors.initial} 0%, ${nodeColors.initial}dd 100%)`,
                 color: 'white',
-                padding: '15px',
-                borderRadius: '8px',
+                p: 2,
+                borderRadius: 2,
                 minWidth: '200px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                boxShadow: 3,
                 border: isValid ? '2px solid transparent' : '2px solid #ef4444',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                position: 'relative'
             }}
         >
-            <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px' }}>
+            <Typography
+                variant="subtitle2"
+                sx={{
+                    mb: 1.5,
+                    fontWeight: 'bold',
+                    color: 'white'
+                }}
+            >
                 🚀 Initial Node
-            </div>
+            </Typography>
 
-            <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>
-                    Workflow Name *
-                </label>
-                <input
-                    type="text"
-                    value={workflowName}
-                    onChange={handleWorkflowNameChange}
-                    placeholder="Enter workflow name"
-                    style={{
-                        width: '100%',
-                        padding: '8px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        fontSize: '12px',
+            <TextField
+                size="small"
+                value={workflowName}
+                onChange={handleWorkflowNameChange}
+                placeholder="Enter workflow name"
+                label="Workflow Name *"
+                variant="outlined"
+                fullWidth
+                sx={{
+                    mb: 1,
+                    '& .MuiOutlinedInput-root': {
                         backgroundColor: 'white',
-                        color: '#333'
+                        fontSize: '0.75rem',
+                        '& .MuiOutlinedInput-input': {
+                            color: '#333'
+                        }
+                    },
+                    '& .MuiInputLabel-root': {
+                        fontSize: '0.75rem',
+                        color: '#666'
+                    }
+                }}
+            />
+
+            {!isValid && (
+                <Alert
+                    severity="error"
+                    sx={{
+                        fontSize: '0.7rem',
+                        '& .MuiAlert-message': {
+                            fontSize: '0.7rem'
+                        }
                     }}
-                />
-                {!isValid && (
-                    <div style={{ color: '#ef4444', fontSize: '10px', marginTop: '4px' }}>
-                        Workflow name is required
-                    </div>
-                )}
-            </div>
+                >
+                    Workflow name is required
+                </Alert>
+            )}
 
             <Handle
                 type="source"
@@ -75,7 +96,7 @@ const InitialNode = ({ data, isConnectable, id }) => {
                 }}
                 isConnectable={isConnectable}
             />
-        </div>
+        </Box>
     );
 };
 
