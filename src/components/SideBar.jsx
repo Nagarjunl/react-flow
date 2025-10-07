@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SideBar = ({ onAddNode, onAddConditionToGroup, nodes, selectedGroupId, setSelectedGroupId, onGenerateJson, onLoadFromJson, onSaveFlow }) => {
+const SideBar = ({ onAddNode, onAddConditionToGroup, nodes, selectedGroupId, setSelectedGroupId, onGenerateJson, onLoadFromJson, onSaveFlow, onViewFlowJson }) => {
     const nodeTypes = [
         {
             type: 'initial',
@@ -74,7 +74,7 @@ const SideBar = ({ onAddNode, onAddConditionToGroup, nodes, selectedGroupId, set
                 Rule Engine Builder
             </h3>
 
-            {/* Main Action Buttons - Only 3 Buttons */}
+            {/* Main Action Buttons - 4 Buttons */}
             <div style={{
                 marginBottom: '20px',
                 padding: '15px',
@@ -179,7 +179,8 @@ const SideBar = ({ onAddNode, onAddConditionToGroup, nodes, selectedGroupId, set
                         justifyContent: 'center',
                         gap: '8px',
                         transition: 'all 0.2s ease',
-                        boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)'
+                        boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)',
+                        marginBottom: '10px'
                     }}
                     onMouseEnter={(e) => {
                         e.target.style.transform = 'translateY(-1px)';
@@ -194,13 +195,46 @@ const SideBar = ({ onAddNode, onAddConditionToGroup, nodes, selectedGroupId, set
                     <span>Load from JSON</span>
                 </button>
 
+                {/* 4. View Flow JSON Button */}
+                <button
+                    onClick={onViewFlowJson}
+                    style={{
+                        width: '100%',
+                        padding: '12px',
+                        background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 4px rgba(139, 92, 246, 0.2)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.transform = 'translateY(-1px)';
+                        e.target.style.boxShadow = '0 4px 8px rgba(139, 92, 246, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 2px 4px rgba(139, 92, 246, 0.2)';
+                    }}
+                >
+                    <span>👁️</span>
+                    <span>View Flow JSON</span>
+                </button>
+
                 <p style={{
                     margin: '8px 0 0 0',
                     fontSize: '11px',
                     color: 'rgba(255, 255, 255, 0.8)',
                     textAlign: 'center'
                 }}>
-                    Save: ruleJson + flowJson | Generate: Show JSON | Load: Restore Diagram
+                    Save: ruleJson + flowJson | Generate: Show JSON | Load: Restore | View: Flow JSON
                 </p>
             </div>
 
