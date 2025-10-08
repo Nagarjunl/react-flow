@@ -363,7 +363,7 @@ export const addNode = (
       setSelectedGroupId
     );
   } else {
-    // For initial, conditionalOperator, and other nodes
+    // For initial, and other nodes
     const position = calculateNodePosition(newCounter, nodeType);
     const newNode = createSimpleNode(nodeType, newNodeId, position, setNodes);
     newNodes = [newNode];

@@ -1,4 +1,5 @@
 import { expressionSymbols } from "../types/nodeTypes";
+import { getIncomers, getOutgoers } from "@xyflow/react";
 
 /**
  * Generate JSON configuration from React Flow nodes and edges
@@ -51,7 +52,7 @@ export const generateRuleEngineJson = (nodes: any[], edges: any[]): any => {
 };
 
 /**
- * Find all rule groups connected to the initial node
+ * Find all rule groups connected to the initial node using React Flow native functions
  */
 const findConnectedRuleGroups = (
   initialNodeId: string,
@@ -60,12 +61,15 @@ const findConnectedRuleGroups = (
 ): any[] => {
   const connectedRuleGroups: any[] = [];
 
-  // Find edges from initial node
-  const initialEdges = edges.filter((edge) => edge.source === initialNodeId);
+  // Find the initial node
+  const initialNode = nodes.find((node) => node.id === initialNodeId);
+  if (!initialNode) return connectedRuleGroups;
 
-  for (const edge of initialEdges) {
-    const targetNode = nodes.find((node) => node.id === edge.target);
-    if (targetNode && targetNode.type === "ruleName") {
+  // Get all outgoing nodes using React Flow native function
+  const outgoers = getOutgoers(initialNode, nodes, edges);
+
+  for (const targetNode of outgoers) {
+    if (targetNode.type === "ruleName") {
       // Find the parent rule group
       const ruleGroup = nodes.find(
         (node) =>
@@ -127,7 +131,8 @@ const generateRuleFromGroup = (
     // Generate expression from conditions and operators
     const expression = generateExpression(
       conditionNodes,
-      conditionalOperatorNodes
+      conditionalOperatorNodes,
+      edges
     );
 
     // Find action group connected to this rule
@@ -151,7 +156,7 @@ const generateRuleFromGroup = (
 };
 
 /**
- * Find conditional operator nodes connected to a rule group
+ * Find conditional operator nodes connected to a rule group using React Flow native functions
  */
 const findConditionalOperatorsForGroup = (
   ruleGroupId: string,
@@ -160,15 +165,19 @@ const findConditionalOperatorsForGroup = (
 ): any[] => {
   const conditionalOperators: any[] = [];
 
-  // Find edges from the rule group to conditional operators
-  const groupEdges = edges.filter((edge) => edge.source === ruleGroupId);
+  // Find the rule group node
+  const ruleGroupNode = nodes.find((node) => node.id === ruleGroupId);
+  if (!ruleGroupNode) return conditionalOperators;
 
-  for (const edge of groupEdges) {
-    const targetNode = nodes.find((node) => node.id === edge.target);
-    if (targetNode && targetNode.type === "conditionalOperator") {
-      conditionalOperators.push(targetNode);
-    }
-  }
+  // Get all outgoing nodes using React Flow native function
+  const outgoers = getOutgoers(ruleGroupNode, nodes, edges);
+
+  // Filter for conditional operator nodes
+  const connectedOperators = outgoers.filter(
+    (node) => node.type === "conditionalOperator"
+  );
+
+  conditionalOperators.push(...connectedOperators);
 
   // Also check for conditional operators that are children of the rule group
   const childConditionalOperators = nodes.filter(
@@ -184,42 +193,93 @@ const findConditionalOperatorsForGroup = (
 };
 
 /**
- * Generate expression from condition nodes and operators
+ * Generate expression from condition nodes and operators following edge connections
  */
 const generateExpression = (
   conditionNodes: any[],
-  conditionalOperatorNodes: any[]
+  conditionalOperatorNodes: any[],
+  edges: any[]
 ): string => {
   if (conditionNodes.length === 0) {
     return "";
   }
 
-  // Sort condition nodes by position or creation order
-  const sortedConditions = conditionNodes.sort((a, b) => {
-    return (a.position?.y || 0) - (b.position?.y || 0);
+  // Build a flow graph by following edge connections
+  const flowGraph = buildFlowGraph(
+    conditionNodes,
+    conditionalOperatorNodes,
+    edges
+  );
+
+  // Generate expression by traversing the flow graph
+  const expressionParts = traverseFlowGraph(flowGraph);
+
+  return expressionParts.join(" ");
+};
+
+/**
+ * Build a flow graph from nodes and edges using React Flow native functions
+ */
+const buildFlowGraph = (
+  conditionNodes: any[],
+  conditionalOperatorNodes: any[],
+  edges: any[]
+) => {
+  const graph: any[] = [];
+  const allNodes = [...conditionNodes, ...conditionalOperatorNodes];
+  const visited = new Set();
+
+  // Find starting nodes (nodes with no incoming edges) using React Flow native function
+  const startingNodes = allNodes.filter((node) => {
+    const incomers = getIncomers(node, allNodes, edges);
+    return incomers.length === 0;
   });
 
-  // Build expression parts
-  const expressionParts: string[] = [];
+  // Build graph by following edges using React Flow native functions
+  const queue = [...startingNodes];
 
-  for (let i = 0; i < sortedConditions.length; i++) {
-    const condition = sortedConditions[i];
-    const conditionExpression = generateConditionExpression(condition);
+  while (queue.length > 0) {
+    const currentNode = queue.shift();
+    if (!currentNode || visited.has(currentNode.id)) continue;
 
-    if (conditionExpression) {
-      expressionParts.push(conditionExpression);
-    }
+    visited.add(currentNode.id);
+    graph.push(currentNode);
 
-    // Add operator between conditions (except for the last one)
-    if (i < sortedConditions.length - 1) {
-      const operator = getOperatorForConditions(conditionalOperatorNodes);
-      if (operator) {
-        expressionParts.push(operator);
+    // Get outgoing nodes using React Flow native function
+    const outgoers = getOutgoers(currentNode, allNodes, edges);
+
+    for (const nextNode of outgoers) {
+      if (!visited.has(nextNode.id)) {
+        queue.push(nextNode);
       }
     }
   }
 
-  return expressionParts.join(" ");
+  return graph;
+};
+
+/**
+ * Traverse flow graph to generate expression parts
+ */
+const traverseFlowGraph = (flowGraph: any[]): string[] => {
+  const expressionParts: string[] = [];
+
+  for (let i = 0; i < flowGraph.length; i++) {
+    const node = flowGraph[i];
+
+    if (node.type === "condition") {
+      const conditionExpression = generateConditionExpression(node);
+      if (conditionExpression) {
+        expressionParts.push(conditionExpression);
+      }
+    } else if (node.type === "conditionalOperator") {
+      const operator =
+        node.data?.operator || node.data?.selectedOperator || "AND";
+      expressionParts.push(operator.toUpperCase());
+    }
+  }
+
+  return expressionParts;
 };
 
 /**
@@ -269,6 +329,12 @@ const getFieldType = (table: string, field: string): string => {
     },
     orders: {
       product_id: "numeric",
+      customer_id: "numeric",
+      Customer_id: "numeric",
+    },
+    products: {
+      stock_quantity: "numeric",
+      price: "numeric",
     },
     attendance: {
       WorkingHours: "numeric",
@@ -276,7 +342,25 @@ const getFieldType = (table: string, field: string): string => {
     },
   };
 
-  return typeMap[table]?.[field] || "varchar";
+  // Check for exact match first
+  if (typeMap[table]?.[field]) {
+    return typeMap[table][field];
+  }
+
+  // Fallback: guess type based on field name patterns
+  const fieldLower = field.toLowerCase();
+  if (
+    fieldLower.includes("id") ||
+    fieldLower.includes("quantity") ||
+    fieldLower.includes("amount") ||
+    fieldLower.includes("price")
+  ) {
+    return "numeric";
+  } else if (fieldLower.includes("date") || fieldLower.includes("time")) {
+    return "date";
+  }
+
+  return "varchar";
 };
 
 /**
@@ -298,8 +382,26 @@ const getExpressionSymbol = (expression: string, fieldType: string): string => {
     return symbolByValue.value;
   }
 
+  // Additional fallback: handle common variations
+  const expressionLower = expression.toLowerCase();
+  if (expressionLower.includes("greater") && expressionLower.includes("than")) {
+    return ">";
+  } else if (
+    expressionLower.includes("less") &&
+    expressionLower.includes("than")
+  ) {
+    return "<";
+  } else if (expressionLower.includes("equal")) {
+    return "=";
+  } else if (
+    expressionLower.includes("not") &&
+    expressionLower.includes("equal")
+  ) {
+    return "!=";
+  }
+
   // Default fallback
-  return "==";
+  return "=";
 };
 
 /**
@@ -310,28 +412,17 @@ const formatValue = (value: string, fieldType: string): string => {
     return `"${value}"`;
   } else if (fieldType === "date") {
     return `"${value}"`;
+  } else if (fieldType === "numeric" || fieldType === "integer") {
+    // For numeric values, return as-is without quotes
+    return value;
   } else {
-    return value; // numeric values don't need quotes
+    // Default to quoted string for unknown types
+    return `"${value}"`;
   }
 };
 
 /**
- * Get operator for conditions
- */
-const getOperatorForConditions = (conditionalOperatorNodes: any[]): string => {
-  // Find the operator from conditional operator nodes
-  if (conditionalOperatorNodes.length > 0) {
-    const operator =
-      conditionalOperatorNodes[0].data?.operator ||
-      conditionalOperatorNodes[0].data?.selectedOperator ||
-      "AND";
-    return operator.toUpperCase();
-  }
-  return "AND"; // Default operator
-};
-
-/**
- * Find action group connected to a rule group
+ * Find action group connected to a rule group using React Flow native functions
  */
 const findConnectedActionGroup = (
   ruleGroupId: string,
@@ -350,20 +441,20 @@ const findConnectedActionGroup = (
     return childActionGroups[0]; // Return the first action group found
   }
 
-  // Fallback: Find action groups connected via edges (for future compatibility)
-  const ruleEdges = edges.filter((edge) => edge.source === ruleGroupId);
+  // Fallback: Find action groups connected via edges using React Flow native functions
+  const ruleGroupNode = nodes.find((node) => node.id === ruleGroupId);
+  if (!ruleGroupNode) return null;
 
-  for (const edge of ruleEdges) {
-    const targetNode = nodes.find((node) => node.id === edge.target);
-    if (targetNode && targetNode.type === "conditionalOperator") {
-      // Find edges from conditional operator to action groups
-      const operatorEdges = edges.filter((e) => e.source === targetNode.id);
+  // Get all outgoing nodes using React Flow native function
+  const outgoers = getOutgoers(ruleGroupNode, nodes, edges);
 
-      for (const operatorEdge of operatorEdges) {
-        const actionTargetNode = nodes.find(
-          (node) => node.id === operatorEdge.target
-        );
-        if (actionTargetNode && actionTargetNode.type === "actionName") {
+  for (const targetNode of outgoers) {
+    if (targetNode.type === "conditionalOperator") {
+      // Get outgoing nodes from the conditional operator
+      const operatorOutgoers = getOutgoers(targetNode, nodes, edges);
+
+      for (const actionTargetNode of operatorOutgoers) {
+        if (actionTargetNode.type === "actionName") {
           // Find the parent action group
           const actionGroup = nodes.find(
             (node) =>
