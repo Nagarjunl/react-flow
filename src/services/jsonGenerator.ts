@@ -1,4 +1,3 @@
-import { expressionSymbols } from "../types/nodeTypes";
 import { getIncomers, getOutgoers } from "@xyflow/react";
 
 /**
@@ -125,7 +124,6 @@ const generateRuleFromGroup = (
     // Validate graph structure
     validateRuleGroupStructure(
       ruleGroup.id,
-      nodes,
       edges,
       conditionNodes,
       conditionalOperatorNodes
@@ -138,10 +136,19 @@ const generateRuleFromGroup = (
       edges
     );
 
-    const actionGroup = findConnectedActionGroup(ruleGroup.id, nodes, edges);
+    const actionGroups = findConnectedActionGroups(ruleGroup.id, nodes, edges);
+
     let actions = {};
-    if (actionGroup) {
-      actions = generateActionsFromGroup(actionGroup, nodes);
+    if (actionGroups.length > 0) {
+      // Merge actions from all action groups
+      actionGroups.forEach((actionGroup) => {
+        const groupActions = generateActionsFromGroup(
+          actionGroup,
+          nodes,
+          edges
+        );
+        actions = { ...actions, ...groupActions };
+      });
     }
 
     return {
@@ -161,7 +168,6 @@ const generateRuleFromGroup = (
  */
 const validateRuleGroupStructure = (
   ruleGroupId: string,
-  nodes: any[],
   edges: any[],
   conditionNodes: any[],
   conditionalOperatorNodes: any[]
@@ -256,7 +262,7 @@ const findConditionalOperatorsForGroup = (
 };
 
 /**
- * Generate expression from condition nodes and operators
+ * Generate expression from condition nodes and operators using new complex grouping logic
  */
 const generateExpression = (
   conditionNodes: any[],
@@ -267,26 +273,37 @@ const generateExpression = (
     return generateConditionExpression(conditionNodes[0]);
   }
 
-  const allNodes = [...conditionNodes, ...conditionalOperatorNodes];
-  const processedNodes = new Set<string>();
+  // Detect valid groups using the new grouping logic
+  const validGroups = detectValidGroupsForGeneration(
+    conditionNodes,
+    conditionalOperatorNodes,
+    edges
+  );
 
-  // Find starting nodes (conditions with no incoming edges)
-  const startingConditions = conditionNodes.filter((node) => {
-    const incomers = getIncomers(node, allNodes, edges);
-    return incomers.length === 0;
-  });
-
-  if (startingConditions.length === 0) {
-    throw new Error("No starting conditions found in the rule group");
+  if (validGroups.length === 0) {
+    throw new Error("No valid groups found in the rule group");
   }
 
-  const expressions = startingConditions
-    .map((cond) =>
-      buildExpressionFromFlow(cond, allNodes, edges, processedNodes)
-    )
-    .filter(Boolean);
+  // Generate expressions for each valid group
+  const groupExpressions = validGroups.map((group) =>
+    generateGroupExpression(group, edges)
+  );
 
-  return expressions.join(" AND "); // Default join for multiple starting points
+  // Apply default AND operator between groups if no explicit operator connects them
+  if (groupExpressions.length === 2) {
+    const hasConnectingOperator = checkForConnectingOperatorInGeneration(
+      validGroups,
+      conditionalOperatorNodes,
+      edges
+    );
+    if (!hasConnectingOperator) {
+      // Apply default AND operator
+      return `(${groupExpressions[0]}) AND (${groupExpressions[1]})`;
+    }
+  }
+
+  // If more than 2 groups or explicit operators exist, use the original logic
+  return groupExpressions.join(" AND ");
 };
 
 /**
@@ -426,13 +443,16 @@ const generateConditionExpression = (conditionNode: any): string => {
 };
 
 /**
- * Find action group connected to a rule group
+ * Find all action groups connected to a rule group
  */
-const findConnectedActionGroup = (
+const findConnectedActionGroups = (
   ruleGroupId: string,
   nodes: any[],
   edges: any[]
-): any => {
+): any[] => {
+  const actionGroups: any[] = [];
+
+  // Find child action groups (direct children)
   const childActionGroups = nodes.filter(
     (node) =>
       node.type === "resizableGroup" &&
@@ -440,12 +460,11 @@ const findConnectedActionGroup = (
       node.data?.label === "Action Group"
   );
 
-  if (childActionGroups.length > 0) {
-    return childActionGroups[0];
-  }
+  actionGroups.push(...childActionGroups);
 
+  // Find connected action groups through operators
   const ruleGroupNode = nodes.find((node) => node.id === ruleGroupId);
-  if (!ruleGroupNode) return null;
+  if (!ruleGroupNode) return actionGroups;
 
   const outgoers = getOutgoers(ruleGroupNode, nodes, edges);
 
@@ -459,23 +478,27 @@ const findConnectedActionGroup = (
               node.type === "resizableGroup" &&
               node.id === actionTargetNode.parentId
           );
-          if (actionGroup) {
-            return actionGroup;
+          if (
+            actionGroup &&
+            !actionGroups.some((ag) => ag.id === actionGroup.id)
+          ) {
+            actionGroups.push(actionGroup);
           }
         }
       }
     }
   }
 
-  return null;
+  return actionGroups;
 };
 
 /**
- * Generate actions from an action group
+ * Generate actions from an action group using new grouping logic
  */
 const generateActionsFromGroup = (
   actionGroup: any,
-  nodes: any[]
+  nodes: any[],
+  edges: any[]
 ): Record<string, any> => {
   const actionNameNodes = nodes.filter(
     (node) => node.type === "actionName" && node.parentId === actionGroup.id
@@ -499,8 +522,19 @@ const generateActionsFromGroup = (
       actionNameNode.id,
       nodes
     );
-    const conditionExpression =
-      generateActionConditionExpression(conditionNodes);
+
+    // Find conditional operators within the action group
+    const conditionalOperatorNodes = nodes.filter(
+      (node) =>
+        node.type === "conditionalOperator" && node.parentId === actionGroup.id
+    );
+
+    // Use new grouping logic for action conditions with edges and operators
+    const conditionExpression = generateActionConditionExpressionWithGrouping(
+      conditionNodes,
+      edges,
+      conditionalOperatorNodes
+    );
 
     actions[actionType] = {
       Name: actionName,
@@ -518,27 +552,409 @@ const generateActionsFromGroup = (
  */
 const findConditionNodesForAction = (
   actionNodeId: string,
-  nodes: any[]
+  allNodes: any[]
 ): any[] => {
-  const actionGroupId = nodes.find(
+  const actionGroupId = allNodes.find(
     (node) => node.id === actionNodeId
   )?.parentId;
-  return nodes.filter(
+  return allNodes.filter(
     (node) => node.type === "condition" && node.parentId === actionGroupId
   );
 };
 
 /**
- * Generate expression for action conditions
+ * Generate expression for action conditions using new grouping logic
  */
-const generateActionConditionExpression = (conditionNodes: any[]): string => {
+const generateActionConditionExpressionWithGrouping = (
+  conditionNodes: any[],
+  edges: any[],
+  conditionalOperatorNodes: any[]
+): string => {
   if (conditionNodes.length === 0) {
     return "";
   }
 
-  const expressionParts = conditionNodes
-    .map((conditionNode) => generateConditionExpression(conditionNode))
+  if (conditionNodes.length === 1) {
+    return generateConditionExpression(conditionNodes[0]);
+  }
+
+  // Use the same complex grouping logic as main rule generation
+  const validGroups = detectValidGroupsForGeneration(
+    conditionNodes,
+    conditionalOperatorNodes,
+    edges
+  );
+
+  if (validGroups.length === 0) {
+    throw new Error("No valid groups found in the action group");
+  }
+
+  // Generate expressions for each valid group
+  const groupExpressions = validGroups.map((group) =>
+    generateGroupExpression(group, edges)
+  );
+
+  // Apply default AND operator between groups if no explicit operator connects them
+  if (groupExpressions.length === 2) {
+    const hasConnectingOperator = checkForConnectingOperatorInGeneration(
+      validGroups,
+      conditionalOperatorNodes,
+      edges
+    );
+    if (!hasConnectingOperator) {
+      // Apply default AND operator
+      return `(${groupExpressions[0]}) AND (${groupExpressions[1]})`;
+    }
+  }
+
+  // If more than 2 groups or explicit operators exist, use the original logic
+  return groupExpressions.join(" AND ");
+};
+
+// ============================================================================
+// NEW GROUPING LOGIC FUNCTIONS FOR JSON GENERATION
+// ============================================================================
+
+/**
+ * Detect valid groups for JSON generation using the new grouping logic
+ */
+const detectValidGroupsForGeneration = (
+  conditionNodes: any[],
+  conditionalOperatorNodes: any[],
+  edges: any[]
+): GenerationGroup[] => {
+  const groups: GenerationGroup[] = [];
+  const processedNodes = new Set<string>();
+
+  // Find starting conditions (no incoming edges)
+  const startingConditions = conditionNodes.filter((node) => {
+    const incomers = getIncomers(
+      node,
+      [...conditionNodes, ...conditionalOperatorNodes],
+      edges
+    );
+    return incomers.length === 0;
+  });
+
+  // Build groups from starting conditions
+  for (const condition of startingConditions) {
+    if (!processedNodes.has(condition.id)) {
+      const group = buildGroupFromConditionForGeneration(
+        condition,
+        conditionNodes,
+        conditionalOperatorNodes,
+        edges,
+        processedNodes
+      );
+      if (group) {
+        groups.push(group);
+      }
+    }
+  }
+
+  return groups;
+};
+
+/**
+ * Build group from condition for JSON generation
+ */
+const buildGroupFromConditionForGeneration = (
+  startCondition: any,
+  conditionNodes: any[],
+  conditionalOperatorNodes: any[],
+  edges: any[],
+  processedNodes: Set<string>
+): GenerationGroup | null => {
+  const groupNodes: any[] = [startCondition];
+  processedNodes.add(startCondition.id);
+
+  // Follow the flow to build the group
+  let currentNode = startCondition;
+  while (true) {
+    const outgoers = getOutgoers(
+      currentNode,
+      [...conditionNodes, ...conditionalOperatorNodes],
+      edges
+    );
+    const operatorNode = outgoers.find(
+      (node) =>
+        node.type === "conditionalOperator" && !processedNodes.has(node.id)
+    );
+
+    if (operatorNode) {
+      groupNodes.push(operatorNode);
+      processedNodes.add(operatorNode.id);
+
+      // Check if this operator has multiple inputs (fan-in pattern)
+      const incomers = getIncomers(
+        operatorNode,
+        [...conditionNodes, ...conditionalOperatorNodes],
+        edges
+      );
+      const conditionInputs = incomers.filter(
+        (node) => node.type === "condition"
+      );
+
+      if (conditionInputs.length >= 2) {
+        // Valid fan-in pattern
+        groupNodes.push(...conditionInputs);
+        conditionInputs.forEach((node) => processedNodes.add(node.id));
+      }
+
+      // Continue to next operator if exists
+      const nextOutgoers = getOutgoers(
+        operatorNode,
+        [...conditionNodes, ...conditionalOperatorNodes],
+        edges
+      );
+      const nextOperator = nextOutgoers.find(
+        (node) =>
+          node.type === "conditionalOperator" && !processedNodes.has(node.id)
+      );
+
+      if (nextOperator) {
+        currentNode = nextOperator;
+      } else {
+        break;
+      }
+    } else {
+      break;
+    }
+  }
+
+  // Validate the group has at least 2 effective operands
+  const isValid = validateGroupForGeneration(groupNodes, edges);
+
+  return {
+    id: `group_${startCondition.id}`,
+    nodes: groupNodes,
+    isValid: isValid.isValid,
+    reason: isValid.reason,
+  };
+};
+
+/**
+ * Validate a group for JSON generation
+ */
+const validateGroupForGeneration = (
+  groupNodes: any[],
+  edges: any[]
+): { isValid: boolean; reason?: string } => {
+  const operators = groupNodes.filter(
+    (node) => node.type === "conditionalOperator"
+  );
+
+  // Check if group has at least 2 effective operands
+  for (const operator of operators) {
+    const incomers = getIncomers(operator, groupNodes, edges);
+    const outgoers = getOutgoers(operator, groupNodes, edges);
+    const effectiveOperands = incomers.length + outgoers.length;
+
+    if (effectiveOperands < 2) {
+      return {
+        isValid: false,
+        reason: `Operator ${operator.id} has fewer than 2 effective operands`,
+      };
+    }
+  }
+
+  return { isValid: true };
+};
+
+/**
+ * Generate expression for a single group
+ */
+const generateGroupExpression = (
+  group: GenerationGroup,
+  edges: any[]
+): string => {
+  if (!group.isValid) {
+    throw new Error(`Invalid group: ${group.reason}`);
+  }
+
+  const processedNodes = new Set<string>();
+  const expressions: string[] = [];
+
+  // Find starting conditions in this group
+  const startingConditions = group.nodes.filter((node) => {
+    if (node.type !== "condition") return false;
+    const incomers = getIncomers(node, group.nodes, edges);
+    return incomers.length === 0;
+  });
+
+  // Build expressions from each starting condition
+  for (const condition of startingConditions) {
+    if (!processedNodes.has(condition.id)) {
+      const expression = buildExpressionFromFlowForGroup(
+        condition,
+        group.nodes,
+        edges,
+        processedNodes
+      );
+      if (expression) {
+        expressions.push(expression);
+      }
+    }
+  }
+
+  if (expressions.length === 1) {
+    return expressions[0];
+  } else if (expressions.length > 1) {
+    return `(${expressions.join(" AND ")})`;
+  }
+
+  return "";
+};
+
+/**
+ * Build expression from flow for a specific group
+ */
+const buildExpressionFromFlowForGroup = (
+  startNode: any,
+  groupNodes: any[],
+  edges: any[],
+  processedNodes: Set<string>
+): string => {
+  if (processedNodes.has(startNode.id)) return "";
+
+  processedNodes.add(startNode.id);
+
+  if (startNode.type === "condition") {
+    let expression = generateConditionExpression(startNode);
+
+    const outgoers = getOutgoers(startNode, groupNodes, edges);
+    const operatorNode = outgoers.find(
+      (node) =>
+        node.type === "conditionalOperator" && !processedNodes.has(node.id)
+    );
+
+    if (operatorNode) {
+      expression = processOperatorWithNestedLogicForGroup(
+        operatorNode,
+        groupNodes,
+        edges,
+        processedNodes,
+        expression
+      );
+    }
+
+    return expression;
+  } else if (startNode.type === "conditionalOperator") {
+    return processOperatorWithNestedLogicForGroup(
+      startNode,
+      groupNodes,
+      edges,
+      processedNodes
+    );
+  }
+
+  return "";
+};
+
+/**
+ * Process operator with nested logic handling for a specific group
+ */
+const processOperatorWithNestedLogicForGroup = (
+  operatorNode: any,
+  groupNodes: any[],
+  edges: any[],
+  processedNodes: Set<string>,
+  leftExpression: string | null = null
+): string => {
+  if (processedNodes.has(operatorNode.id)) return "";
+
+  const operator = operatorNode.data?.operator || "AND";
+  processedNodes.add(operatorNode.id);
+
+  const incomers = getIncomers(operatorNode, groupNodes, edges);
+  const subInputs = incomers.filter((node) => !processedNodes.has(node.id));
+
+  let subExpressions = subInputs
+    .map((node) =>
+      buildExpressionFromFlowForGroup(node, groupNodes, edges, processedNodes)
+    )
     .filter(Boolean);
 
-  return expressionParts.join(" AND ");
+  const conditionOutputs = getOutgoers(operatorNode, groupNodes, edges).filter(
+    (node) => node.type === "condition" && !processedNodes.has(node.id)
+  );
+
+  const outputExpressions = conditionOutputs
+    .map((node) =>
+      buildExpressionFromFlowForGroup(node, groupNodes, edges, processedNodes)
+    )
+    .filter(Boolean);
+
+  subExpressions = [...subExpressions, ...outputExpressions];
+
+  if (leftExpression) {
+    subExpressions.unshift(leftExpression);
+  }
+
+  let currentExpression: string;
+  if (subExpressions.length === 0) {
+    throw new Error(
+      `Operator at ID ${operatorNode.id} has no conditions to combine`
+    );
+  } else if (subExpressions.length === 1) {
+    currentExpression = subExpressions[0];
+  } else {
+    currentExpression = `(${subExpressions.join(` ${operator} `)})`;
+  }
+
+  const nextOutgoers = getOutgoers(operatorNode, groupNodes, edges);
+  const nextOperator = nextOutgoers.find(
+    (node) =>
+      node.type === "conditionalOperator" && !processedNodes.has(node.id)
+  );
+
+  if (nextOperator) {
+    return processOperatorWithNestedLogicForGroup(
+      nextOperator,
+      groupNodes,
+      edges,
+      processedNodes,
+      currentExpression
+    );
+  }
+
+  return currentExpression;
 };
+
+/**
+ * Check for connecting operator between groups in generation
+ */
+const checkForConnectingOperatorInGeneration = (
+  groups: GenerationGroup[],
+  operatorNodes: any[],
+  edges: any[]
+): boolean => {
+  // Check if there's an operator that connects the outputs of multiple groups
+  for (const operator of operatorNodes) {
+    const incomers = getIncomers(operator, operatorNodes, edges);
+    if (incomers.length >= 2) {
+      // Check if these incomers are from different groups
+      const groupIds = new Set();
+      for (const incomer of incomers) {
+        const group = groups.find((g) =>
+          g.nodes.some((n) => n.id === incomer.id)
+        );
+        if (group) {
+          groupIds.add(group.id);
+        }
+      }
+      if (groupIds.size >= 2) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+// Helper interface for generation grouping logic
+interface GenerationGroup {
+  id: string;
+  nodes: any[];
+  isValid: boolean;
+  reason?: string;
+}

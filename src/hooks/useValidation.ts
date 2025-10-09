@@ -14,7 +14,6 @@ import {
   validateOperatorRestrictions,
   ValidationResult,
   ValidationError,
-  getValidationSummary,
 } from "../services/validationService";
 
 export interface ValidationState {
