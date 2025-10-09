@@ -289,15 +289,20 @@ const generateExpression = (
     generateGroupExpression(group, edges)
   );
 
-  // Apply default AND operator between groups if no explicit operator connects them
+  // Apply dynamic operator between groups
   if (groupExpressions.length === 2) {
-    const hasConnectingOperator = checkForConnectingOperatorInGeneration(
+    const connectingOperator = findConnectingOperatorInGeneration(
       validGroups,
       conditionalOperatorNodes,
       edges
     );
-    if (!hasConnectingOperator) {
-      // Apply default AND operator
+
+    if (connectingOperator) {
+      // Use the operator value from the operator node
+      const operatorValue = connectingOperator.data?.operator || "AND";
+      return `(${groupExpressions[0]}) ${operatorValue} (${groupExpressions[1]})`;
+    } else {
+      // Apply default AND operator when no connecting operator exists
       return `(${groupExpressions[0]}) AND (${groupExpressions[1]})`;
     }
   }
@@ -529,11 +534,11 @@ const generateActionsFromGroup = (
         node.type === "conditionalOperator" && node.parentId === actionGroup.id
     );
 
-    // Use new grouping logic for action conditions with edges and operators
-    const conditionExpression = generateActionConditionExpressionWithGrouping(
+    // Use the same expression generation logic as main rule groups
+    const conditionExpression = generateExpression(
       conditionNodes,
-      edges,
-      conditionalOperatorNodes
+      conditionalOperatorNodes,
+      edges
     );
 
     actions[actionType] = {
@@ -560,55 +565,6 @@ const findConditionNodesForAction = (
   return allNodes.filter(
     (node) => node.type === "condition" && node.parentId === actionGroupId
   );
-};
-
-/**
- * Generate expression for action conditions using new grouping logic
- */
-const generateActionConditionExpressionWithGrouping = (
-  conditionNodes: any[],
-  edges: any[],
-  conditionalOperatorNodes: any[]
-): string => {
-  if (conditionNodes.length === 0) {
-    return "";
-  }
-
-  if (conditionNodes.length === 1) {
-    return generateConditionExpression(conditionNodes[0]);
-  }
-
-  // Use the same complex grouping logic as main rule generation
-  const validGroups = detectValidGroupsForGeneration(
-    conditionNodes,
-    conditionalOperatorNodes,
-    edges
-  );
-
-  if (validGroups.length === 0) {
-    throw new Error("No valid groups found in the action group");
-  }
-
-  // Generate expressions for each valid group
-  const groupExpressions = validGroups.map((group) =>
-    generateGroupExpression(group, edges)
-  );
-
-  // Apply default AND operator between groups if no explicit operator connects them
-  if (groupExpressions.length === 2) {
-    const hasConnectingOperator = checkForConnectingOperatorInGeneration(
-      validGroups,
-      conditionalOperatorNodes,
-      edges
-    );
-    if (!hasConnectingOperator) {
-      // Apply default AND operator
-      return `(${groupExpressions[0]}) AND (${groupExpressions[1]})`;
-    }
-  }
-
-  // If more than 2 groups or explicit operators exist, use the original logic
-  return groupExpressions.join(" AND ");
 };
 
 // ============================================================================
@@ -922,13 +878,13 @@ const processOperatorWithNestedLogicForGroup = (
 };
 
 /**
- * Check for connecting operator between groups in generation
+ * Find connecting operator between groups in generation
  */
-const checkForConnectingOperatorInGeneration = (
+const findConnectingOperatorInGeneration = (
   groups: GenerationGroup[],
   operatorNodes: any[],
   edges: any[]
-): boolean => {
+): any | null => {
   // Check if there's an operator that connects the outputs of multiple groups
   for (const operator of operatorNodes) {
     const incomers = getIncomers(operator, operatorNodes, edges);
@@ -944,11 +900,11 @@ const checkForConnectingOperatorInGeneration = (
         }
       }
       if (groupIds.size >= 2) {
-        return true;
+        return operator;
       }
     }
   }
-  return false;
+  return null;
 };
 
 // Helper interface for generation grouping logic
