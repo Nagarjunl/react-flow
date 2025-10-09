@@ -1,0 +1,120 @@
+---
+alwaysApply: false
+---
+
+# Complete List of All Understood Rules
+
+Based on our discussion, here are all the rules I've understood:
+
+## 1. Initial Node Restrictions
+
+1. ✅ Only one Initial Node for the whole flow chart
+2. ✅ Initial → RuleName node (direct connection)
+3. ✅ All RuleName nodes must connect to Initial (no orphaned RuleName nodes)
+4. ✅ Initial Node cannot be inside any ResizableGroup (completely separate, only bottom handle for connections)
+5. ✅ No connection between Action Group and Initial Node
+6. ✅ Only Initial node allowed multiple connections (but only to RuleName nodes)
+
+## 2. Rule Group Node Restrictions
+
+1. ✅ One or more Rule Group Nodes allowed in flow
+2. ✅ May have one OR more Condition Nodes (single condition is valid, multiple conditions are also valid)
+3. ✅ Complex grouping logic: When multiple Condition Nodes exist, they form groups based on operator connections:
+   - **Group 1**: Multiple conditions → Single operator (e.g., Condition1 + Condition2 → OR operator)
+   - **Group 2**: Multiple conditions → Single operator (e.g., Condition3 + Condition4 → AND operator)
+   - **Group 3**: Multiple conditions → Single operator (e.g., Condition1 + Condition2 + Condition3 → OR operator)
+   - **Any operator type** from the Operator node (OR, AND, NOT, etc.)
+   - **Group Validation Rule**: Only when a group is valid, then only the Multiple operators from group → Single operator
+   - **Default Operator Rule**: When two valid groups exist without a third operator connecting them, the default operator is AND
+   - Final expression: `(Condition1 OR Condition2) NOT (Condition3 AND Condition4)`
+4. ✅ No nested Rule Groups (Rule Group within another Rule Group not allowed)
+5. ✅ Action Groups nested INSIDE Rule Groups (not external connections)
+6. ✅ Rule Groups have no bottom handles (separate, no external connections except to Initial via top handle)
+7. ✅ Terminology: Rule Group = ResizableGroup + its RuleName node
+
+## 3. Action Group Node Restrictions
+
+1. ✅ Must have one OR more Condition Nodes (zero not allowed)
+2. ✅ Follows same grouping logic as Rule Groups (fan-in pattern):
+   - Multiple conditions → Single operator
+   - Complex grouping: Group1 + Group2 → Final operator
+   - Same complex logic as Rule Groups
+   - **Group Validation Rule**: Only when a group is valid, then only the Multiple operators from group → Single operator
+   - **Default Operator Rule**: When two valid groups exist without a third operator connecting them, the default operator is AND
+3. ✅ No connections between Action Groups (each Action Group is completely independent)
+4. ✅ No external connections to/from Action Groups (only internal connections within the Action Group)
+5. ✅ Action Group is a parent container with valid groups inside it
+
+## 4. Connection Restrictions
+
+1. ✅ No connection between Action Group Nodes and Rule Group Nodes (Action Group is child of Rule Group)
+2. ✅ No connection between Action Group Node and Initial Node
+3. ✅ No connection between Action Group Nodes (each Action Group is independent)
+4. ✅ No direct connection between two condition nodes (must go via Operator Node)
+5. ✅ No direct connection between two condition nodes (duplicate of Rule 4)
+6. ✅ Rule Group (ResizableGroup + RuleName) has no bottom handles - can ONLY connect to Initial node via top handles
+7. ✅ Action Group has no handles - no external connections (only internal connections within Action Group)
+
+## 5. Fields within nodes Restrictions
+
+1. ✅ All required fields in a node must be filled before adding any new node
+2. ✅ All fields are required for each node type:
+   - **Initial Node**: `workflowName`
+   - **RuleName Node**: `ruleName`
+   - **Condition Node**: `selectedTable`, `selectedField`, `expression`, `value`
+   - **ActionName Node**: `actionType`, `actionName`
+   - **ConditionalOperator Node**: `operator`
+3. ✅ Validation timing: Both
+   - Prevent adding new nodes if current node fields are incomplete
+   - Show validation errors when trying to generate JSON
+4. ✅ Error handling: Both
+   - Show error message and prevent the action
+   - Highlight the incomplete fields
+5. ✅ Scope: All nodes in the flow
+
+## 6. Complex Grouping Logic (Updated)
+
+1. ✅ **Valid Groups:**
+
+   - Group 1: Multiple conditions → Single operator (e.g., Condition1 + Condition2 → OR operator)
+   - Group 2: Multiple conditions → Single operator (e.g., Condition3 + Condition4 → AND operator)
+   - Group 3: Multiple conditions → Single operator (e.g., Condition1 + Condition2 + Condition3 → OR operator)
+   - Any operator type from the Operator node (OR, AND, NOT, etc.)
+
+2. ✅ **Group Validation Rule:**
+
+   - Only when a group is valid, then only the Multiple operators from group → Single operator
+   - Invalid groups cannot be combined with other groups
+
+3. ✅ **Default Operator Rule:**
+
+   - When two valid groups exist without a third operator connecting them, the default operator is AND
+   - Example: Group 1: `(user.Name Equals 45 AND user.Name Equals 66)` + Group 2: `(user.Name Equals YYYY OR products.price Less than 1000)` → Default: `(user.Name Equals 45 AND user.Name Equals 66) AND (user.Name Equals YYYY OR products.price Less than 1000)`
+
+4. ✅ **Applies to both Rule Groups AND Action Groups**
+
+## Allowed Connections Summary:
+
+- ✅ Initial → RuleName (via top handles)
+- ✅ Condition → Operator (within groups)
+- ✅ Operator → Operator (within groups)
+
+## Existing Rules (Keep All):
+
+- ✅ No condition-to-condition connections
+- ✅ No reversed flow (operator → condition)
+- ✅ No branching (single outgoing connection per node)
+- ✅ No cycles allowed
+- ✅ Operators must have ≥2 effective operands
+- ✅ Linear flow validation
+- ✅ Expression generation with parentheses
+- ✅ Action context generation
+
+**All rules are now complete and ready for implementation!**
+
+Operator Node Restriction:
+No two Operator Nodes are connected directly each other
+
+Delete Restriction
+Delete the Rule Name node then delete the entire Rule group node
+Delete the Action Name node then delete the entire Actiongroup node
