@@ -23,7 +23,10 @@ import "@xyflow/react/dist/style.css";
 import { nodeComponents } from "./types/nodeTypes";
 import SideBar from "./components/SideBar";
 import JsonDrawer from "./components/JsonDrawer";
+import ValidationPanel from "./components/ValidationPanel";
+import ValidationIndicator from "./components/ValidationIndicator";
 import { Box, ThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import { useValidation } from "./hooks/useValidation";
 
 // Import services
 import {
@@ -75,11 +78,27 @@ const App: React.FC = () => {
     actionName: 0,
   });
 
+  // Validation hook
+  const { validationState, validateConnection, getNodeErrors, hasNodeErrors } =
+    useValidation(nodes, edges);
+
   const onConnect = useCallback(
     (params: Connection) => {
+      // Validate connection before adding
+      const validation = validateConnection(params);
+
+      if (!validation.isValid) {
+        // Show error message
+        const errorMessages = validation.errors
+          .map((error) => error.message)
+          .join("\n");
+        alert(`Invalid connection:\n${errorMessages}`);
+        return;
+      }
+
       setEdges((eds) => addEdge(params, eds));
     },
-    [setEdges]
+    [setEdges, validateConnection]
   );
 
   const onAddConditionToGroup = useCallback(
@@ -118,7 +137,7 @@ const App: React.FC = () => {
     ]
   );
 
-  const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
+  const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
     // Handle group selection
     if (node.type === "resizableGroup") {
       setSelectedGroupId(node.id);
@@ -128,12 +147,12 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const onEdgeClick: EdgeMouseHandler = useCallback((event, edge) => {
+  const onEdgeClick: EdgeMouseHandler = useCallback((_event, edge) => {
     // Handle edge click if needed
     console.log("Edge clicked:", edge);
   }, []);
 
-  const onPaneClick = useCallback((event: React.MouseEvent) => {
+  const onPaneClick = useCallback((_event: React.MouseEvent) => {
     // Deselect group when clicking on pane
     setSelectedGroupId(null);
     console.log("Pane clicked, group deselected");
@@ -288,6 +307,29 @@ const App: React.FC = () => {
             onViewFlowJson={handleViewFlowJson}
           />
 
+          {/* Validation Panel */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              width: 400,
+              zIndex: 1000,
+            }}
+          >
+            <ValidationPanel
+              errors={validationState.errors}
+              warnings={validationState.warnings}
+              isValid={validationState.isValid}
+              summary={validationState.summary}
+              isValidationInProgress={validationState.isValidationInProgress}
+              onErrorClick={(error) => {
+                console.log("Error clicked:", error);
+                // You can add logic to highlight the specific node or edge
+              }}
+            />
+          </Box>
+
           <Box
             sx={{
               flex: 1,
@@ -311,6 +353,19 @@ const App: React.FC = () => {
                     },
                   };
                 }
+
+                // Add validation error highlighting
+                if (hasNodeErrors(node.id)) {
+                  return {
+                    ...node,
+                    data: {
+                      ...node.data,
+                      border: "2px solid #ef4444",
+                      boxShadow: "0 0 8px rgba(239, 68, 68, 0.5)",
+                    },
+                  };
+                }
+
                 return node;
               })}
               edges={edges}
@@ -331,6 +386,26 @@ const App: React.FC = () => {
               <Background color="#f0f0f0" />
               <Controls />
               <MiniMap {...miniMapConfig} />
+
+              {/* Validation Indicators Overlay */}
+              {nodes.map((node) => {
+                const nodeErrors = getNodeErrors(node.id);
+                if (nodeErrors.length === 0) return null;
+
+                return (
+                  <ValidationIndicator
+                    key={`validation-${node.id}`}
+                    nodeId={node.id}
+                    errors={nodeErrors}
+                    warnings={[]}
+                    position="top-right"
+                    size="small"
+                    onErrorClick={(error) => {
+                      console.log("Validation error clicked:", error);
+                    }}
+                  />
+                );
+              })}
             </ReactFlow>
           </Box>
 

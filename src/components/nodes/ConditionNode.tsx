@@ -25,6 +25,9 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
   >([]);
   const { updateNodeData } = useReactFlow();
 
+  // Note: Validation indicators will be handled at the App level
+  // This component will receive validation state through props if needed
+
   // Initialize available fields and expressions on first load
   useEffect(() => {
     if (!isInitialized) {

@@ -1,0 +1,52 @@
+---
+alwaysApply: false
+---
+
+when more than one Condition Node
+This is main part it have some complex logic.
+
+first we have create a valid groups based on "edges connection to the Operator Node" and apply the rules on those groups.
+
+For example in a single Rule Group Node have
+
+1.  Two or more than Two condition nodes are connected to one Operator Node. - this is a group.
+
+2.  Two Condition Node connected to one Operator Node and another Two Condition Node connected to one Operator Node. here we have two groups.
+
+    first group: Condition1 and Condition2 with OR Operator.
+    second group: Condition3 and Condition4 with And Operator.
+
+these are valid groups
+
+3. Two Condition Node connected to one Operator Node and another Two Condition Node connected to one Operator Node. finally those two Operator Node connected to one Operator Node. Here
+
+   first group: Condition1 and Condition2 with OR Operator.
+   second group: Condition3 and Condition4 with And Operator.
+
+   first and second are valid groups(STRICTLY). then only check the following :
+   first Groups OR Operator Node and second Groups AND Operator Node connected to NOT Operator Node. this is also valid group.
+
+   here final expression result is : (Condition1 OR Condition2) NOT (Condition3 AND Condition4)
+
+4. Valid Groups with Multiple Conditions:
+
+   - Group 1: Multiple conditions → Single operator (e.g., Condition1 + Condition2 + Condition3 → OR operator)
+   - Group 2: Multiple conditions → Single operator (e.g., Condition3 + Condition4 → AND operator)
+   - Any operator type from the Operator node (OR, AND, NOT, etc.)
+
+5. Group Validation Rule:
+
+   - Only when a group is valid, then only the Multiple operators from group → Single operator
+   - Invalid groups cannot be combined with other groups
+
+6. Default Operator Rule:
+
+   - When two valid groups exist without a third operator connecting them, the default operator is AND
+
+   Example:
+
+   - Group 1: (user.Name Equals 45 AND user.Name Equals 66)
+   - Group 2: (user.Name Equals YYYY OR products.price Less than 1000)
+   - If no third operator connects them → Default: (user.Name Equals 45 AND user.Name Equals 66) AND (user.Name Equals YYYY OR products.price Less than 1000)
+
+Note: This same logic applies to both Rule Groups AND Action Groups.
