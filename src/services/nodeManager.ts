@@ -3,7 +3,8 @@
  * Handles creation and management of React Flow nodes
  */
 
-import type { Node } from "@xyflow/react";
+import type { Node, XYPosition } from "@xyflow/react";
+import { LayoutService } from "./layoutService";
 
 /**
  * Node counter interface
@@ -140,10 +141,17 @@ export const createRuleGroup = (
   };
   setNodeCounter(newCounter);
 
+  // Calculate position using React Flow's recommended layouting approach
+  const position = LayoutService.calculateNewNodePosition(
+    [],
+    "resizableGroup",
+    nodeCounter.resizableGroup
+  );
+
   const ruleGroup: Node = {
     id: ruleGroupId,
     type: "resizableGroup",
-    position: { x: 50, y: 50 }, // Fixed position to avoid covering viewport
+    position,
     parentId: selectedGroupId || undefined, // Nest under selected group if available
     extent: selectedGroupId ? "parent" : undefined, // Set extent if nested
     style: {
@@ -203,10 +211,17 @@ export const createActionGroup = (
   };
   setNodeCounter(newCounter);
 
+  // Calculate position using React Flow's recommended layouting approach
+  const position = LayoutService.calculateNewNodePosition(
+    [],
+    "resizableGroup",
+    nodeCounter.resizableGroup
+  );
+
   const actionGroup: Node = {
     id: actionGroupId,
     type: "resizableGroup",
-    position: { x: 20, y: 150 }, // Position within parent if selected
+    position,
     parentId: selectedGroupId || undefined, // Nest under selected group if available
     extent: selectedGroupId ? "parent" : undefined, // Set extent if nested
     style: {
@@ -278,20 +293,21 @@ export const createSimpleNode = (
 };
 
 /**
- * Calculates position for new nodes based on node counter
+ * Calculates position for new nodes using React Flow's recommended layouting approach
  */
 export const calculateNodePosition = (
   nodeCounter: NodeCounter,
-  nodeType: string
-): Position => {
-  const baseX = 400; // Moved further right to avoid overlap with Rule Groups
-  const baseY = 100;
+  nodeType: string,
+  existingNodes: Node[] = []
+): XYPosition => {
   const nodeIndex = nodeCounter[nodeType as keyof NodeCounter] || 0;
 
-  return {
-    x: baseX + nodeIndex * 320,
-    y: baseY + nodeIndex * 120,
-  };
+  // Use React Flow's recommended layouting service
+  return LayoutService.calculateNewNodePosition(
+    existingNodes,
+    nodeType,
+    nodeIndex
+  );
 };
 
 /**
@@ -305,7 +321,8 @@ export const addNode = (
   setNodes: (nodes: Node[] | ((prev: Node[]) => Node[])) => void,
   setSelectedGroupId: (id: string | null) => void,
   onAddConditionToGroup: (groupId: string) => void,
-  onAddOperatorToGroup: (groupId: string) => void
+  onAddOperatorToGroup: (groupId: string) => void,
+  existingNodes: Node[] = []
 ): Node[] => {
   // Handle condition node with context awareness
   if (nodeType === "condition") {
@@ -364,7 +381,7 @@ export const addNode = (
     );
   } else {
     // For initial, and other nodes
-    const position = calculateNodePosition(newCounter, nodeType);
+    const position = calculateNodePosition(newCounter, nodeType, existingNodes);
     const newNode = createSimpleNode(nodeType, newNodeId, position, setNodes);
     newNodes = [newNode];
   }

@@ -155,7 +155,8 @@ const App: React.FC = () => {
         setNodes,
         setSelectedGroupId,
         onAddConditionToGroup,
-        onAddOperatorToGroup
+        onAddOperatorToGroup,
+        nodes
       );
     },
     [
@@ -164,6 +165,7 @@ const App: React.FC = () => {
       selectedGroupId,
       onAddConditionToGroup,
       onAddOperatorToGroup,
+      nodes,
     ]
   );
 
