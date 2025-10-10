@@ -1,0 +1,171 @@
+# Validation System
+
+The React Flow Rule Engine includes a comprehensive validation system that provides real-time feedback on your rule configurations, helping you identify and fix issues before they cause problems.
+
+## Validation Panel
+
+Located in the top-right corner of the interface, the validation panel continuously monitors your flow for errors and warnings.
+
+### Features
+
+- **Real-time Validation**: Continuously checks your flow for errors
+- **Error Categories**: Different types of validation errors
+- **Clickable Errors**: Click errors to highlight problematic nodes
+- **Collapsible Interface**: Expand/collapse to save space
+
+## Error Types
+
+### Cycle Detection 🔄
+
+**What it is**: Detects circular connections in your flow
+
+**Why it matters**: Prevents infinite loops in rule execution
+
+**How to fix**: Remove circular connections between nodes
+
+**Example**: If Node A connects to Node B, and Node B connects back to Node A
+
+### Disconnected Nodes 🔌
+
+**What it is**: Nodes that aren't properly connected
+
+**Why it matters**: Ensures all nodes are part of the flow
+
+**How to fix**: Connect disconnected nodes or remove unused ones
+
+**Note**: Some nodes can be standalone (like Initial Node)
+
+### Operator Input Errors ⚠️
+
+**What it is**: Operators with incorrect number of inputs
+
+**Why it matters**: Ensures logical operators work correctly
+
+**How to fix**: Connect appropriate number of inputs to operators
+
+**Examples**:
+
+- AND operator needs at least 2 inputs
+- OR operator needs at least 2 inputs
+- NOT operator needs exactly 1 input
+
+### Invalid Connections ❌
+
+**What it is**: Connections between incompatible node types
+
+**Why it matters**: Prevents runtime errors
+
+**How to fix**: Connect only compatible node types
+
+**Examples**:
+
+- Don't connect Initial Node directly to Action Node
+- Don't connect Action Node to Condition Node
+
+## Validation Indicators
+
+### Visual Indicators
+
+- **Red Icons**: Show on nodes with errors
+- **Hover Tooltips**: Display error details
+- **Click to Focus**: Click error indicators to highlight issues
+
+### Node Highlighting
+
+- **Red Border**: Nodes with validation errors
+- **Green Border**: Selected nodes (Rule Groups)
+- **Error Icons**: Small red icons on problematic nodes
+
+## Validation Status
+
+### Status Indicators
+
+- **✅ Valid**: Green checkmark - all validations passed
+- **❌ Invalid**: Red X - errors need to be fixed
+- **Summary**: Shows error count and status
+
+### Status Messages
+
+- "All Validations Passed" - No errors found
+- "X errors found" - Shows number of errors
+- "Validating..." - System is checking for errors
+
+## Using the Validation System
+
+### Real-time Monitoring
+
+The validation system runs continuously in the background, checking your flow as you make changes.
+
+### Error Resolution
+
+1. **Check the Validation Panel** - Look for error messages
+2. **Click on Errors** - Click error messages to highlight problematic nodes
+3. **Fix the Issues** - Address the specific problems mentioned
+4. **Re-validate** - The system will automatically re-check after changes
+
+### Best Practices
+
+- **Check Frequently**: Monitor the validation panel regularly
+- **Fix Errors Early**: Address issues as soon as they appear
+- **Understand Error Types**: Learn what each error type means
+- **Use Visual Indicators**: Pay attention to red borders and error icons
+
+## Common Validation Scenarios
+
+### Scenario 1: Empty Workflow
+
+- **Error**: "No Initial Node found"
+- **Fix**: Add an Initial Node to start your workflow
+
+### Scenario 2: Unconnected Nodes
+
+- **Error**: "Disconnected nodes detected"
+- **Fix**: Connect nodes to the main flow or remove unused ones
+
+### Scenario 3: Circular Logic
+
+- **Error**: "Cycle detected in flow"
+- **Fix**: Remove the circular connection
+
+### Scenario 4: Incomplete Configuration
+
+- **Error**: "Node has incomplete configuration"
+- **Fix**: Fill in all required fields in the node
+
+## Troubleshooting Validation Issues
+
+### Validation Panel Not Showing
+
+- **Cause**: Panel might be collapsed
+- **Solution**: Click the expand arrow in the validation panel header
+- **Location**: Top-right corner of the interface
+
+### Errors Not Clearing
+
+- **Cause**: Changes not saved or cached
+- **Solution**: Make sure all changes are applied and saved
+- **Check**: Ensure all required fields are filled
+
+### False Positives
+
+- **Cause**: System might be checking against strict rules
+- **Solution**: Review the error message and adjust your flow accordingly
+- **Note**: Some warnings might be acceptable depending on your use case
+
+## Advanced Validation
+
+### Custom Validation Rules
+
+The system includes built-in validation rules for:
+
+- Node connectivity
+- Data type compatibility
+- Required field validation
+- Logical flow validation
+
+### Performance Considerations
+
+- Validation runs in real-time
+- Large flows may take longer to validate
+- System optimizes validation for performance
+- Errors are cached to improve responsiveness
