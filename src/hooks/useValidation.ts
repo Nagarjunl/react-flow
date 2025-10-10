@@ -297,7 +297,7 @@ export const useValidation = (nodes: Node[], edges: Edge[]) => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       validateAllComprehensive();
-    }, 300); // Debounce validation
+    }, 1000); // Increased debounce time to allow node data to update
 
     return () => clearTimeout(timeoutId);
   }, [validateAllComprehensive]);

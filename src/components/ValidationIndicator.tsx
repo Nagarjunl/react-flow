@@ -1,9 +1,8 @@
 import React from "react";
-import { Box, Tooltip, IconButton, Badge } from "@mui/material";
+import { Box, Tooltip, IconButton } from "@mui/material";
 import {
   Error as ErrorIcon,
   Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import { ValidationError } from "../services/validationService";
 
@@ -39,8 +38,10 @@ const ValidationIndicator: React.FC<ValidationIndicatorProps> = ({
     const baseStyles = {
       position: "absolute" as const,
       zIndex: 1000,
+      pointerEvents: "auto" as const,
     };
 
+    // Position relative to the node container
     switch (position) {
       case "top-right":
         return { ...baseStyles, top: 4, right: 4 };
@@ -65,19 +66,6 @@ const ValidationIndicator: React.FC<ValidationIndicatorProps> = ({
         return 24;
       default:
         return 16;
-    }
-  };
-
-  const getTooltipTitle = () => {
-    const errorCount = nodeErrors.length;
-    const warningCount = nodeWarnings.length;
-
-    if (errorCount > 0 && warningCount > 0) {
-      return `${errorCount} error(s) and ${warningCount} warning(s)`;
-    } else if (errorCount > 0) {
-      return `${errorCount} error(s)`;
-    } else {
-      return `${warningCount} warning(s)`;
     }
   };
 

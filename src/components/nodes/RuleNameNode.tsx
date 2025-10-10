@@ -3,6 +3,7 @@ import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { nodeColors } from "../../types/nodeTypes";
 import { Box, Typography, TextField, Alert } from "@mui/material";
 import type { RuleNameNodeProps } from "../../types/nodeTypes";
+import ValidationIndicator from "../ValidationIndicator";
 
 const RuleNameNode: React.FC<RuleNameNodeProps> = ({
   data,
@@ -105,6 +106,17 @@ const RuleNameNode: React.FC<RuleNameNodeProps> = ({
           Required
         </Alert>
       )}
+
+      {/* Validation Indicator */}
+      {data.hasValidationErrors ? (
+        <ValidationIndicator
+          nodeId={id}
+          errors={(data.validationErrors as any[]) || []}
+          warnings={[]}
+          position="top-right"
+          size="small"
+        />
+      ) : null}
     </Box>
   );
 };
