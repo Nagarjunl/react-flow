@@ -3,6 +3,7 @@ import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { nodeColors, conditionalOperators } from "../../types/nodeTypes";
 import { Box, Typography, Autocomplete, TextField, Alert } from "@mui/material";
 import type { ConditionalOperatorNodeProps } from "../../types/nodeTypes";
+import ValidationIndicator from "../ValidationIndicator";
 
 const ConditionalOperatorNode: React.FC<ConditionalOperatorNodeProps> = ({
   data,
@@ -119,6 +120,17 @@ const ConditionalOperatorNode: React.FC<ConditionalOperatorNodeProps> = ({
         }}
         isConnectable={isConnectable}
       />
+
+      {/* Validation Indicator */}
+      {data.hasValidationErrors ? (
+        <ValidationIndicator
+          nodeId={id}
+          errors={(data.validationErrors as any[]) || []}
+          warnings={[]}
+          position="top-right"
+          size="small"
+        />
+      ) : null}
     </Box>
   );
 };

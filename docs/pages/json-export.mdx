@@ -1,0 +1,265 @@
+# JSON Generation & Export
+
+The React Flow Rule Engine provides powerful JSON generation and export capabilities, allowing you to convert your visual rule flows into structured data that can be used in backend systems.
+
+## 📄 JSON Drawer
+
+Opens when you click "Generate JSON" or "View Flow JSON" in the sidebar.
+
+### Features
+
+- **Syntax Highlighting**: Color-coded JSON for readability
+- **Copy Button**: One-click copy to clipboard
+- **Download Button**: Save JSON to file
+- **Dark Theme**: Easy on the eyes for code viewing
+
+### Drawer Interface
+
+- **Header**: Shows "Generated JSON" with close button
+- **Actions**: Copy and Download buttons
+- **Content**: Formatted JSON with syntax highlighting
+- **Footer**: Helpful tips and information
+
+## 📊 Generated JSON Structure
+
+The system generates two types of JSON:
+
+### Rule Engine JSON (Generate JSON)
+
+This is the main JSON format for backend integration:
+
+```json
+{
+  "workflows": [
+    {
+      "name": "CommissionCalculation",
+      "rules": [
+        {
+          "name": "High Performance Bonus",
+          "type": "commission",
+          "conditions": [
+            {
+              "table": "sales",
+              "field": "Amount",
+              "operator": ">=",
+              "value": "1000"
+            }
+          ],
+          "actions": [
+            {
+              "type": "onSuccess",
+              "name": "Calculate Commission",
+              "properties": {
+                "commission_rate": 0.05,
+                "bonus_amount": 100
+              }
+            }
+          ],
+          "properties": {
+            "priority": 1,
+            "active": true
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Flow JSON (View Flow JSON)
+
+This is the technical JSON representation of your visual flow:
+
+```json
+{
+  "nodes": [
+    {
+      "id": "initial-1",
+      "type": "initial",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "workflowName": "Commission Rules",
+        "isValid": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "initial-1",
+      "target": "group-1",
+      "type": "default"
+    }
+  ],
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}
+```
+
+## 📤 Export Options
+
+### Copy to Clipboard 📋
+
+**Purpose**: Quick copy for pasting into other applications
+
+**Format**: Plain text JSON
+
+**Confirmation**: Shows "Copied!" message
+
+**Usage**: Click the Copy button in the JSON drawer
+
+### Download File 💾
+
+**Purpose**: Save JSON to local file
+
+**Filename**: `rule-engine-config.json`
+
+**Format**: Standard JSON file
+
+**Usage**: Click the Download button in the JSON drawer
+
+## 🔧 JSON Generation Process
+
+### Step 1: Validation Check
+
+- System validates your flow for errors
+- Ensures all required fields are filled
+- Checks for proper node connections
+
+### Step 2: Data Extraction
+
+- Extracts data from all nodes
+- Processes node relationships
+- Generates structured data
+
+### Step 3: JSON Formatting
+
+- Formats data into JSON structure
+- Applies syntax highlighting
+- Validates JSON syntax
+
+### Step 4: Export Options
+
+- Provides copy and download options
+- Shows formatted JSON in drawer
+- Allows further processing
+
+## 📋 Usage Scenarios
+
+### Backend Integration
+
+- **Generate JSON**: Use for backend integration
+- **API Integration**: Send JSON to your backend API
+- **Database Storage**: Store rule configurations
+- **Rule Engine**: Feed into your rule engine system
+
+### Debugging & Analysis
+
+- **View Flow JSON**: Use for debugging or flow analysis
+- **Flow Structure**: Understand the technical structure
+- **Node Relationships**: Analyze node connections
+- **Performance**: Optimize flow structure
+
+### Backup & Version Control
+
+- **Save Flow**: Use for complete workflow backup
+- **Load from JSON**: Use to restore saved workflows
+- **Version Control**: Track changes over time
+- **Collaboration**: Share workflows with team members
+
+## 🎯 JSON Structure Details
+
+### Workflow Level
+
+- **Name**: Workflow identifier
+- **Rules**: Array of rule objects
+- **Metadata**: Additional workflow information
+
+### Rule Level
+
+- **Name**: Rule identifier
+- **Type**: Rule type (commission, bonus, etc.)
+- **Conditions**: Array of condition objects
+- **Actions**: Array of action objects
+- **Properties**: Rule-specific properties
+
+### Condition Level
+
+- **Table**: Data source table
+- **Field**: Specific field from table
+- **Operator**: Comparison operator
+- **Value**: Comparison value
+
+### Action Level
+
+- **Type**: Action type (onSuccess, onFailure, etc.)
+- **Name**: Action identifier
+- **Properties**: Action-specific properties
+
+## 🔍 JSON Validation
+
+### Built-in Validation
+
+- **Syntax Check**: Validates JSON syntax
+- **Structure Check**: Ensures proper structure
+- **Data Validation**: Validates data types
+- **Required Fields**: Checks for required fields
+
+### Error Handling
+
+- **Validation Errors**: Shows specific error messages
+- **Missing Data**: Highlights missing information
+- **Invalid Format**: Identifies format issues
+- **Connection Issues**: Reports connection problems
+
+## 💡 Best Practices
+
+### JSON Generation
+
+- **Validate First**: Always validate your flow before generating JSON
+- **Check Required Fields**: Ensure all required fields are filled
+- **Test JSON**: Validate generated JSON before using
+- **Save Backups**: Keep copies of working JSON configurations
+
+### Export Management
+
+- **Use Descriptive Names**: Name your workflows clearly
+- **Organize Files**: Keep exported files organized
+- **Version Control**: Track changes to JSON files
+- **Documentation**: Document your JSON configurations
+
+### Integration Tips
+
+- **API Testing**: Test JSON with your backend API
+- **Error Handling**: Implement proper error handling
+- **Validation**: Validate JSON on the backend
+- **Monitoring**: Monitor JSON processing performance
+
+## 🚨 Troubleshooting
+
+### JSON Generation Fails
+
+- **Cause**: Flow has validation errors
+- **Solution**: Fix all validation errors first
+- **Check**: Ensure all required fields are filled
+
+### Invalid JSON Format
+
+- **Cause**: Data format issues
+- **Solution**: Check node configurations
+- **Validation**: Use JSON validation tools
+
+### Export Issues
+
+- **Cause**: Browser or system issues
+- **Solution**: Try different browser or clear cache
+- **Alternative**: Use copy to clipboard instead
+
+### Performance Issues
+
+- **Cause**: Large flows or complex data
+- **Solution**: Optimize flow structure
+- **Monitoring**: Watch for slowdowns

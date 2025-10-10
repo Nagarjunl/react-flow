@@ -3,6 +3,7 @@ import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { nodeColors, actionTypes } from "../../types/nodeTypes";
 import { Box, Typography, TextField, Autocomplete, Alert } from "@mui/material";
 import type { ActionNameNodeProps } from "../../types/nodeTypes";
+import ValidationIndicator from "../ValidationIndicator";
 
 const ActionNameNode: React.FC<ActionNameNodeProps> = ({
   data,
@@ -83,7 +84,7 @@ const ActionNameNode: React.FC<ActionNameNodeProps> = ({
           options={actionTypes}
           getOptionLabel={(option) => option.label || ""}
           value={actionTypes.find((type) => type.value === actionType) || null}
-          onChange={(event, newValue) => {
+          onChange={(_, newValue) => {
             const value = newValue ? newValue.value : "";
             setActionType(value);
             validateFields(value, actionName);
@@ -151,6 +152,17 @@ const ActionNameNode: React.FC<ActionNameNodeProps> = ({
           Both fields required
         </Alert>
       )}
+
+      {/* Validation Indicator */}
+      {data.hasValidationErrors ? (
+        <ValidationIndicator
+          nodeId={id}
+          errors={(data.validationErrors as any[]) || []}
+          warnings={[]}
+          position="top-right"
+          size="small"
+        />
+      ) : null}
     </Box>
   );
 };

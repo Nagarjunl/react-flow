@@ -24,7 +24,6 @@ import { nodeComponents } from "./types/nodeTypes";
 import SideBar from "./components/SideBar";
 import JsonDrawer from "./components/JsonDrawer";
 import ValidationPanel from "./components/ValidationPanel";
-import ValidationIndicator from "./components/ValidationIndicator";
 import { Box, ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import { useValidation } from "./hooks/useValidation";
 
@@ -79,7 +78,7 @@ const App: React.FC = () => {
   });
 
   // Validation hook
-  const { validationState, validateConnection, getNodeErrors, hasNodeErrors } =
+  const { validationState, validateConnection, hasNodeErrors, getNodeErrors } =
     useValidation(nodes, edges);
 
   const onConnect = useCallback(
@@ -356,17 +355,30 @@ const App: React.FC = () => {
 
                 // Add validation error highlighting
                 if (hasNodeErrors(node.id)) {
+                  const nodeErrors = getNodeErrors(node.id);
                   return {
                     ...node,
                     data: {
                       ...node.data,
+                      hasValidationErrors: true,
+                      validationErrors: nodeErrors,
                       border: "2px solid #ef4444",
                       boxShadow: "0 0 8px rgba(239, 68, 68, 0.5)",
                     },
                   };
                 }
 
-                return node;
+                // Clear validation errors for nodes without current errors
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    hasValidationErrors: false,
+                    validationErrors: [],
+                    border: node.data?.border || "2px solid transparent",
+                    boxShadow: node.data?.boxShadow || "none",
+                  },
+                };
               })}
               edges={edges}
               onNodesChange={onNodesChange}
@@ -386,26 +398,6 @@ const App: React.FC = () => {
               <Background color="#f0f0f0" />
               <Controls />
               <MiniMap {...miniMapConfig} />
-
-              {/* Validation Indicators Overlay */}
-              {nodes.map((node) => {
-                const nodeErrors = getNodeErrors(node.id);
-                if (nodeErrors.length === 0) return null;
-
-                return (
-                  <ValidationIndicator
-                    key={`validation-${node.id}`}
-                    nodeId={node.id}
-                    errors={nodeErrors}
-                    warnings={[]}
-                    position="top-right"
-                    size="small"
-                    onErrorClick={(error) => {
-                      console.log("Validation error clicked:", error);
-                    }}
-                  />
-                );
-              })}
             </ReactFlow>
           </Box>
 

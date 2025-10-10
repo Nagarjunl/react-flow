@@ -4,6 +4,7 @@ import { nodeColors, expressionSymbols } from "../../types/nodeTypes";
 import { tableSchema } from "../../constants/constant";
 import { Box, Typography, TextField, Autocomplete, Alert } from "@mui/material";
 import type { ConditionNodeProps } from "../../types/nodeTypes";
+import ValidationIndicator from "../ValidationIndicator";
 
 const ConditionNode: React.FC<ConditionNodeProps> = ({
   data,
@@ -333,6 +334,17 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
         }}
         isConnectable={isConnectable}
       />
+
+      {/* Validation Indicator */}
+      {data.hasValidationErrors ? (
+        <ValidationIndicator
+          nodeId={id}
+          errors={(data.validationErrors as any[]) || []}
+          warnings={[]}
+          position="top-right"
+          size="small"
+        />
+      ) : null}
     </Box>
   );
 };

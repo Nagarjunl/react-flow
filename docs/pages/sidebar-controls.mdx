@@ -1,0 +1,141 @@
+# Sidebar Controls
+
+The sidebar is your main control panel, located on the left side of the interface. It contains all the tools you need to build and manage your rule flows.
+
+## 🚀 Workflow Actions Section
+
+### Save Flow 💾
+
+**Purpose**: Saves your complete workflow (rule JSON + flow JSON)
+
+**When to Use**: After building your rule flow
+
+**What it Does**: Downloads a combined file containing both the rule configuration and the visual flow data
+
+**File Format**: JSON file with workflow data
+
+### Generate JSON 📄
+
+**Purpose**: Creates rule engine JSON from your visual flow
+
+**When to Use**: When you want to see the generated rule configuration
+
+**What it Does**: Opens a drawer showing the structured JSON that can be used in your backend
+
+**Features**: Copy to clipboard, download as file
+
+### Load from JSON 📤
+
+**Purpose**: Restores a previously saved workflow
+
+**When to Use**: To continue working on a saved project
+
+**What it Does**: Opens a file picker to select and load a saved workflow file
+
+**Restores**: Complete visual flow and all node configurations
+
+### View Flow JSON 👁️
+
+**Purpose**: Shows the raw React Flow JSON structure
+
+**When to Use**: For debugging or understanding the flow structure
+
+**What it Does**: Displays the technical JSON representation of your visual flow
+
+**Note**: This is different from the rule engine JSON
+
+## 📦 Add Nodes Section
+
+### Initial Node 🚀
+
+**Purpose**: Starting point of your workflow
+
+**Features**:
+
+- Workflow name input field
+- Only has bottom connection handle
+- Required for all workflows
+
+**Usage**: Always start your workflow with this node
+
+### Rule Group 📦
+
+**Purpose**: Container for organizing related rules
+
+**Features**:
+
+- Resizable group container
+- Can contain multiple conditions and operators
+- Visual grouping of related logic
+
+**Usage**: Create groups to organize complex rule logic
+
+### Condition 🔍
+
+**Purpose**: Defines business logic conditions
+
+**Features**:
+
+- Table selection dropdown
+- Field selection dropdown
+- Expression operator dropdown
+- Value input field
+
+**Usage**: Define the "if" part of your business rules
+
+### Action ⚡
+
+**Purpose**: Defines what happens when conditions are met
+
+**Features**:
+
+- Action type selection (onSuccess, onFailure, etc.)
+- Action name input
+- Can contain multiple conditions
+
+**Usage**: Define the "then" part of your business rules
+
+### Operator 🔗
+
+**Purpose**: Connects multiple conditions with logical operators
+
+**Features**:
+
+- AND, OR, NOT operators
+- Links multiple conditions together
+
+**Usage**: Combine multiple conditions with logical operators
+
+## 📊 Flow Statistics
+
+- **Nodes Count**: Shows total number of nodes in your flow
+- **Edges Count**: Shows total number of connections between nodes
+- **Real-time Updates**: Counts update as you add/remove elements
+
+## Group Management
+
+When you have rule groups in your flow, the sidebar shows additional options:
+
+### Selected Group Indicator
+
+- Shows which group is currently selected
+- Displays group name and selection status
+- Green border indicates active selection
+
+### Add to Selected Group
+
+- **Add Condition**: Adds a new condition node to the selected group
+- **Add Operator**: Adds a new operator node to the selected group
+
+### Available Groups
+
+- Lists all available rule groups in your flow
+- Click to select different groups
+- Shows group names and selection status
+
+## Tips for Using the Sidebar
+
+- **Select Groups**: Click on rule groups to select them for adding child nodes
+- **Monitor Statistics**: Keep an eye on node and edge counts to track flow complexity
+- **Use Workflow Actions**: Save frequently and generate JSON to test your configuration
+- **Organize with Groups**: Use rule groups to keep complex flows organized

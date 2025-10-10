@@ -1,0 +1,281 @@
+# Workflow Guide
+
+This comprehensive guide walks you through creating a complete business rule workflow using the React Flow Rule Engine.
+
+## 📋 Step-by-Step Process
+
+### Step 1: Create Initial Node
+
+1. Click **"Initial Node"** in the sidebar
+2. Enter a **workflow name** (e.g., "Commission Rules")
+3. Verify the node shows a green border (valid)
+
+**What happens**: The Initial Node becomes the starting point of your workflow.
+
+### Step 2: Create Rule Groups
+
+1. Click **"Rule Group"** in the sidebar
+2. Enter a **group name** (e.g., "Sales Commission")
+3. Click the group to select it (green border appears)
+4. Resize the group to accommodate child nodes
+
+**What happens**: You now have a container to organize related rules.
+
+### Step 3: Add Conditions
+
+1. With a group selected, click **"Add Condition"**
+2. Configure the condition:
+   - Select **table** (e.g., "sales")
+   - Select **field** (e.g., "Amount")
+   - Select **expression** (e.g., `>=`)
+   - Enter **value** (e.g., "1000")
+3. Repeat for additional conditions
+
+**What happens**: You define the business logic conditions.
+
+### Step 4: Add Operators
+
+1. With a group selected, click **"Add Operator"**
+2. Select operator type (AND, OR, NOT)
+3. Connect conditions to the operator
+
+**What happens**: You combine multiple conditions with logical operators.
+
+### Step 5: Add Actions
+
+1. Click **"Action"** in the sidebar
+2. Configure the action:
+   - Select **action type** (e.g., "onSuccess")
+   - Enter **action name** (e.g., "Calculate Commission")
+3. Connect conditions to the action
+
+**What happens**: You define what happens when conditions are met.
+
+### Step 6: Connect Nodes
+
+1. **Drag** from output handle of one node to input handle of another
+2. **Valid connections** will show green preview
+3. **Invalid connections** will be rejected with error message
+
+**What happens**: You link all the components together.
+
+### Step 7: Validate Flow
+
+1. Check the **Validation Panel** in top-right
+2. **Fix any errors** shown in red
+3. **Review warnings** shown in yellow
+4. Ensure all nodes are properly connected
+
+**What happens**: You ensure your flow is error-free.
+
+### Step 8: Generate JSON
+
+1. Click **"Generate JSON"** in the sidebar
+2. **Review** the generated JSON in the drawer
+3. **Copy** or **Download** as needed
+4. **Close** the drawer when done
+
+**What happens**: You export your configuration for backend use.
+
+### Step 9: Save Workflow
+
+1. Click **"Save Flow"** in the sidebar
+2. **Choose location** to save the file
+3. **File contains** both rule JSON and flow JSON
+
+**What happens**: You backup your complete workflow.
+
+## 🎯 Example Workflow: Commission Calculation
+
+Let's build a real example - a commission calculation system.
+
+### Scenario
+
+Calculate commission for sales representatives based on:
+
+- Sales amount `>=` $1000
+- Attendance rate `>=` 90%
+- Both conditions must be true (AND)
+
+### Step-by-Step Implementation
+
+#### 1. Create Initial Node
+
+- **Workflow Name**: "Sales Commission Rules"
+- **Result**: Blue node with workflow name
+
+#### 2. Create Rule Group
+
+- **Group Name**: "High Performance Commission"
+- **Result**: Purple container node
+
+#### 3. Add First Condition
+
+- **Table**: "sales"
+- **Field**: "Amount"
+- **Expression**: `>=`
+- **Value**: "1000"
+- **Result**: Red condition node
+
+#### 4. Add Second Condition
+
+- **Table**: "metrics"
+- **Field**: "AttendancePercentage"
+- **Expression**: `>=`
+- **Value**: "90"
+- **Result**: Second red condition node
+
+#### 5. Add Operator
+
+- **Operator**: "AND"
+- **Result**: Orange operator node
+
+#### 6. Add Action
+
+- **Action Type**: "onSuccess"
+- **Action Name**: "Calculate 5% Commission"
+- **Result**: Teal action node
+
+#### 7. Connect Everything
+
+- Initial Node → Rule Group
+- Condition 1 → Operator
+- Condition 2 → Operator
+- Operator → Action
+- **Result**: Connected flow
+
+#### 8. Validate
+
+- Check validation panel
+- Fix any errors
+- **Result**: Green validation status
+
+#### 9. Generate JSON
+
+- Click "Generate JSON"
+- Review the output
+- **Result**: Structured JSON configuration
+
+## 🔧 Advanced Workflow Patterns
+
+### Pattern 1: Multiple Rule Groups
+
+Create separate groups for different scenarios:
+
+```
+Initial Node
+├── Rule Group 1: "High Performance"
+│   ├── Condition: Sales `>=` 1000
+│   ├── Condition: Attendance `>=` 90%
+│   ├── Operator: AND
+│   └── Action: 5% Commission
+└── Rule Group 2: "Standard Performance"
+    ├── Condition: Sales `>=` 500
+    ├── Condition: Attendance `>=` 80%
+    ├── Operator: AND
+    └── Action: 3% Commission
+```
+
+### Pattern 2: Complex Conditions
+
+Use multiple operators for complex logic:
+
+```
+Condition 1: Sales `>=` 1000
+├── Operator 1: AND
+├── Condition 2: Attendance `>=` 90%
+├── Operator 2: OR
+├── Condition 3: StoreKpi `>=` 95%
+└── Action: Bonus Commission
+```
+
+### Pattern 3: Error Handling
+
+Include error handling actions:
+
+```
+Condition: Sales `<` 0
+└── Action: "onError" - "Invalid Sales Data"
+
+Condition: Attendance `<` 50%
+└── Action: "onFailure" - "Low Attendance Warning"
+```
+
+## 🎨 Visual Design Tips
+
+### Layout Best Practices
+
+- **Top to Bottom**: Arrange nodes in logical flow
+- **Left to Right**: Group related conditions horizontally
+- **Clean Connections**: Avoid crossing connection lines
+- **Consistent Spacing**: Maintain uniform spacing
+
+### Color Coding
+
+- **Blue**: Initial/Start nodes
+- **Purple**: Rule groups/containers
+- **Red**: Condition nodes
+- **Orange**: Operator nodes
+- **Teal**: Action nodes
+
+### Group Organization
+
+- **Logical Grouping**: Group related rules together
+- **Clear Labels**: Use descriptive group names
+- **Appropriate Size**: Resize groups to fit content
+- **Visual Hierarchy**: Use groups to create hierarchy
+
+## 🚀 Workflow Optimization
+
+### Performance Tips
+
+- **Efficient Layout**: Keep related nodes close together
+- **Minimize Connections**: Use operators to reduce connections
+- **Group Similar Rules**: Organize rules logically
+- **Validate Regularly**: Check for errors frequently
+
+### Maintenance
+
+- **Regular Backups**: Save flows frequently
+- **Version Control**: Track changes over time
+- **Documentation**: Document complex workflows
+- **Testing**: Test workflows with sample data
+
+## 🔍 Troubleshooting Workflows
+
+### Common Issues
+
+#### Flow Not Validating
+
+- **Check**: All required fields filled
+- **Verify**: Proper node connections
+- **Review**: Validation panel messages
+
+#### JSON Generation Fails
+
+- **Cause**: Validation errors
+- **Solution**: Fix all errors first
+- **Check**: Node configurations
+
+#### Performance Issues
+
+- **Cause**: Too many nodes or complex connections
+- **Solution**: Optimize flow structure
+- **Use**: Groups to organize nodes
+
+### Debugging Tips
+
+- **Use Minimap**: Navigate large flows
+- **Check Validation**: Monitor validation panel
+- **Test Incrementally**: Build and test step by step
+- **Save Frequently**: Backup your work
+
+## 📚 Next Steps
+
+After completing your workflow:
+
+1. **Test Thoroughly**: Validate with sample data
+2. **Document**: Document your workflow logic
+3. **Share**: Share with team members
+4. **Iterate**: Improve based on feedback
+5. **Deploy**: Integrate with your backend system

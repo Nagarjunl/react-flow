@@ -3,6 +3,7 @@ import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { nodeColors } from "../../types/nodeTypes";
 import { Box, Typography, TextField, Alert } from "@mui/material";
 import type { InitialNodeProps } from "../../types/nodeTypes";
+import ValidationIndicator from "../ValidationIndicator";
 
 const InitialNode: React.FC<InitialNodeProps> = ({
   data,
@@ -53,7 +54,6 @@ const InitialNode: React.FC<InitialNodeProps> = ({
       >
         🚀 Initial Node
       </Typography>
-
       <TextField
         size="small"
         value={workflowName}
@@ -77,7 +77,6 @@ const InitialNode: React.FC<InitialNodeProps> = ({
           },
         }}
       />
-
       {!isValid && (
         <Alert
           severity="error"
@@ -91,7 +90,6 @@ const InitialNode: React.FC<InitialNodeProps> = ({
           Workflow name is required
         </Alert>
       )}
-
       <Handle
         type="source"
         position={Position.Bottom}
@@ -104,6 +102,16 @@ const InitialNode: React.FC<InitialNodeProps> = ({
         }}
         isConnectable={isConnectable}
       />
+      {/* Validation Indicator */}
+      {data.hasValidationErrors ? (
+        <ValidationIndicator
+          nodeId={id}
+          errors={(data.validationErrors as any[]) || []}
+          warnings={[]}
+          position="top-right"
+          size="small"
+        />
+      ) : null}
     </Box>
   );
 };

@@ -1,0 +1,180 @@
+# Node Types
+
+The React Flow Rule Engine provides several specialized node types, each designed for specific purposes in building business rules and workflows.
+
+## 🚀 Initial Node
+
+**Purpose**: Starting point of your workflow
+
+### Configuration
+
+- **Workflow Name**: Enter a descriptive name for your workflow
+- **Validation**: Name is required (cannot be empty)
+
+### Visual Indicators
+
+- Blue gradient background
+- Single bottom connection handle
+- Red border if validation fails
+
+### Usage Tips
+
+- Always start your workflow with this node
+- Use descriptive names like "Commission Calculation" or "Bonus Rules"
+
+## 🔍 Condition Node
+
+**Purpose**: Defines business logic conditions
+
+### Configuration
+
+#### 1. Table Selection
+
+Choose from available tables:
+
+- `metrics`: TargetAchievement, AttendancePercentage, StoreKpiAchievement, etc.
+- `user`: Designation, Name, Id
+- `sales`: Amount, Quantity, Date
+- `orders`: id, customer_id, product_id, quantity, etc.
+- `products`: id, name, price, category, stock_quantity
+- `customers`: id, name, email, discount_rate, membership_level
+
+#### 2. Field Selection
+
+Choose specific field from selected table
+
+#### 3. Expression
+
+Select operator based on field type:
+
+- **Numeric/Integer**: `>=`, `<=`, `=`, `>`, `<`, `!=`
+- **Varchar**: contains, equals, starts with, ends with, `!=`
+- **Date**: `>=`, `<=`, `=`, `>` (after), `<` (before), `!=`
+
+#### 4. Value
+
+Enter the comparison value
+
+### Visual Indicators
+
+- Red gradient background
+- Input/output connection handles
+- Red border if validation fails
+
+### Usage Tips
+
+- Field selection updates based on table selection
+- Expression options change based on field type
+- Use appropriate value formats (numbers for numeric, text for varchar)
+
+## ⚡ Action Node
+
+**Purpose**: Defines what happens when conditions are met
+
+### Configuration
+
+#### 1. Action Type
+
+Choose from:
+
+- `onTarget`: When target is achieved
+- `onSuccess`: When operation succeeds
+- `onFailure`: When operation fails
+- `onError`: When error occurs
+- `onComplete`: When process completes
+
+#### 2. Action Name
+
+Enter descriptive name for the action
+
+### Visual Indicators
+
+- Teal gradient background
+- Input/output connection handles
+- Red border if validation fails
+
+### Usage Tips
+
+- Use descriptive action names
+- Choose appropriate action types for your business logic
+
+## 🔗 Conditional Operator Node
+
+**Purpose**: Connects multiple conditions with logical operators
+
+### Configuration
+
+- **Operator**: Choose from AND, OR, NOT
+
+### Visual Indicators
+
+- Orange gradient background
+- Multiple connection handles
+- Red border if validation fails
+
+### Usage Tips
+
+- **AND**: All conditions must be true
+- **OR**: At least one condition must be true
+- **NOT**: Inverts the condition result
+
+## 📦 Rule Group Node
+
+**Purpose**: Container for organizing related rules
+
+### Configuration
+
+- **Label**: Enter group name
+- **Resizable**: Can be resized by dragging corners
+
+### Visual Indicators
+
+- Purple gradient background
+- Green border when selected
+- Can contain child nodes
+
+### Usage Tips
+
+- Use groups to organize complex rule logic
+- Click to select group for adding child nodes
+- Resize to accommodate multiple child nodes
+
+## Node Connection Rules
+
+### Valid Connections
+
+- Initial Node → Rule Group
+- Rule Group → Condition Node
+- Rule Group → Operator Node
+- Condition Node → Operator Node
+- Operator Node → Action Node
+- Condition Node → Action Node
+
+### Invalid Connections
+
+- Initial Node → Action Node (direct)
+- Action Node → Condition Node
+- Operator Node → Initial Node
+
+## Best Practices
+
+### Node Organization
+
+- Use Rule Groups to organize related conditions
+- Keep conditions logically grouped
+- Use operators to combine multiple conditions
+- Connect actions to the final result of your logic
+
+### Naming Conventions
+
+- Use descriptive names for all nodes
+- Include context in workflow names
+- Make action names specific and clear
+- Use consistent naming patterns
+
+### Visual Layout
+
+- Arrange nodes in logical flow (top to bottom)
+- Use Rule Groups to contain related nodes
+- Keep connections clean and avoid crossing lines
+- Use the minimap to navigate large flows

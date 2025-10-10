@@ -2,6 +2,7 @@ import React from "react";
 import { NodeResizer } from "@xyflow/react";
 import { Box, Typography } from "@mui/material";
 import type { ResizableGroupNodeProps } from "../../types/nodeTypes";
+import ValidationIndicator from "../ValidationIndicator";
 
 const ResizableGroupNode: React.FC<ResizableGroupNodeProps> = ({
   data,
@@ -42,6 +43,17 @@ const ResizableGroupNode: React.FC<ResizableGroupNodeProps> = ({
           {data.label}
         </Typography>
       )}
+
+      {/* Validation Indicator */}
+      {data.hasValidationErrors ? (
+        <ValidationIndicator
+          nodeId={typeof data.id === "string" ? data.id : ""}
+          errors={(data.validationErrors as any[]) || []}
+          warnings={[]}
+          position="top-right"
+          size="small"
+        />
+      ) : null}
     </Box>
   );
 };

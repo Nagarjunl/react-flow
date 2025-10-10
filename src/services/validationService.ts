@@ -1005,7 +1005,12 @@ export const validateRequiredFields = (nodes: Node[]): ValidationResult => {
   const warnings: ValidationError[] = [];
 
   try {
-    for (const node of nodes) {
+    // Only validate nodes that have been properly initialized
+    const initializedNodes = nodes.filter(
+      (node) => node.data && Object.keys(node.data).length > 0 && node.type // Make sure node has a type
+    );
+
+    for (const node of initializedNodes) {
       const fieldErrors = validateNodeFields(node);
       errors.push(...fieldErrors);
     }
@@ -1038,8 +1043,10 @@ const validateNodeFields = (node: Node): ValidationError[] => {
 
   switch (node.type) {
     case "initial":
+      // Only show error if the field is explicitly empty or undefined
       if (
-        !data.workflowName ||
+        data.workflowName === undefined ||
+        data.workflowName === null ||
         (typeof data.workflowName === "string" &&
           data.workflowName.trim() === "")
       ) {
@@ -1052,8 +1059,10 @@ const validateNodeFields = (node: Node): ValidationError[] => {
       break;
 
     case "ruleName":
+      // Only show error if the field is explicitly empty or undefined
       if (
-        !data.ruleName ||
+        data.ruleName === undefined ||
+        data.ruleName === null ||
         (typeof data.ruleName === "string" && data.ruleName.trim() === "")
       ) {
         errors.push({

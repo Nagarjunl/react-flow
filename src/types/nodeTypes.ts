@@ -121,6 +121,7 @@ export interface ActionType {
 }
 
 export const actionTypes: ActionType[] = [
+  { value: "onTarget", label: "On Target" },
   { value: "onSuccess", label: "On Success" },
   { value: "onFailure", label: "On Failure" },
   { value: "onError", label: "On Error" },
