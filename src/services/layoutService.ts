@@ -1,5 +1,5 @@
 import dagre from "dagre";
-import { Node, Edge, XYPosition } from "@xyflow/react";
+import { Node, Edge, XYPosition, ReactFlowInstance } from "@xyflow/react";
 
 export interface LayoutedElements {
   nodes: Node[];
@@ -68,44 +68,80 @@ export class LayoutService {
   }
 
   /**
-   * Calculate position for a new node based on existing layout
+   * Calculate position using React Flow native methods and Dagre
+   */
+  static calculateOffsetPosition(
+    nodes: Node[],
+    nodeType: string,
+    reactFlowInstance?: ReactFlowInstance,
+    parentId?: string
+  ): XYPosition {
+    // Filter nodes based on context (main flow vs within group)
+    let relevantNodes = nodes;
+    if (parentId) {
+      // For child nodes within a group, only consider nodes in the same group
+      relevantNodes = nodes.filter((node) => node.parentId === parentId);
+    } else {
+      // For main flow nodes, exclude child nodes
+      relevantNodes = nodes.filter((node) => !node.parentId);
+    }
+
+    // Filter by node type if specified
+    if (nodeType) {
+      relevantNodes = relevantNodes.filter((node) => node.type === nodeType);
+    }
+
+    if (relevantNodes.length === 0) {
+      // No existing nodes of this type - use React Flow native method for default position
+      if (reactFlowInstance && !parentId) {
+        const viewport = reactFlowInstance.getViewport();
+        return {
+          x: viewport.x + 100,
+          y: viewport.y + 100,
+        };
+      }
+      return parentId ? { x: 10, y: 10 } : { x: 100, y: 100 };
+    }
+
+    // Use React Flow native method to get bounds of relevant nodes
+    if (reactFlowInstance && !parentId) {
+      // Use viewport for positioning instead of getBounds (which doesn't exist)
+      const viewport = reactFlowInstance.getViewport();
+      const lastNode = relevantNodes[relevantNodes.length - 1];
+      return {
+        x: lastNode.position.x + 10,
+        y: lastNode.position.y + 10,
+      };
+    }
+
+    // Fallback to simple calculation for child nodes
+    const lastNode = relevantNodes[relevantNodes.length - 1];
+    return {
+      x: lastNode.position.x + 10,
+      y: lastNode.position.y + 10,
+    };
+  }
+
+  /**
+   * Calculate position for a new node using simple 10px offset (working approach)
    */
   static calculateNewNodePosition(
     nodes: Node[],
     nodeType: string,
+    reactFlowInstance?: ReactFlowInstance,
     nodeIndex: number = 0
   ): XYPosition {
     if (nodes.length === 0) {
-      // First node - place in center
+      // First node - use React Flow native method for center position
+      if (reactFlowInstance) {
+        const viewport = reactFlowInstance.getViewport();
+        return { x: viewport.x + 100, y: viewport.y + 100 };
+      }
       return { x: 100, y: 100 };
     }
 
-    // Get bounds of existing nodes
-    const bounds = this.getNodesBounds(nodes);
-
-    // Calculate position based on node type and existing layout
-    switch (nodeType) {
-      case "initial":
-        // Place initial node to the left of existing nodes
-        return {
-          x: Math.max(50, bounds.minX - this.NODE_WIDTH - 50),
-          y: bounds.minY,
-        };
-
-      case "resizableGroup":
-        // Place rule groups to the right of existing nodes
-        return {
-          x: bounds.maxX + 50 + nodeIndex * (this.NODE_WIDTH + 50),
-          y: bounds.minY + nodeIndex * (this.NODE_HEIGHT + 50),
-        };
-
-      default:
-        // Default positioning
-        return {
-          x: bounds.maxX + 50,
-          y: bounds.minY + nodeIndex * (this.NODE_HEIGHT + 50),
-        };
-    }
+    // Use simple 10px offset approach (this was working perfectly)
+    return this.calculateOffsetPosition(nodes, nodeType, reactFlowInstance);
   }
 
   /**

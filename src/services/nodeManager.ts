@@ -3,7 +3,7 @@
  * Handles creation and management of React Flow nodes
  */
 
-import type { Node, XYPosition } from "@xyflow/react";
+import type { Node, XYPosition, ReactFlowInstance } from "@xyflow/react";
 import { LayoutService } from "./layoutService";
 
 /**
@@ -34,7 +34,8 @@ export const createConditionNode = (
   parentId: string,
   nodes: Node[],
   setNodes: (nodes: Node[] | ((prev: Node[]) => Node[])) => void,
-  setSelectedGroupId: (id: string | null) => void
+  setSelectedGroupId: (id: string | null) => void,
+  reactFlowInstance?: ReactFlowInstance
 ): Node | null => {
   // Validate that the parent group still exists
   const parentExists = nodes.some(
@@ -48,11 +49,19 @@ export const createConditionNode = (
     return null;
   }
 
+  // Calculate position using centralized LayoutService with React Flow native methods
+  const conditionPosition = LayoutService.calculateOffsetPosition(
+    nodes,
+    "condition",
+    reactFlowInstance,
+    parentId
+  );
+
   const conditionId = `condition-${Date.now()}`;
   const conditionNode: Node = {
     id: conditionId,
     type: "condition",
-    position: { x: 20, y: 80 }, // Relative to parent group
+    position: conditionPosition, // Use centralized positioning
     parentId: parentId,
     extent: "parent",
     data: {
@@ -84,7 +93,8 @@ export const createOperatorNode = (
   parentId: string,
   nodes: Node[],
   setNodes: (nodes: Node[] | ((prev: Node[]) => Node[])) => void,
-  setSelectedGroupId: (id: string | null) => void
+  setSelectedGroupId: (id: string | null) => void,
+  reactFlowInstance?: ReactFlowInstance
 ): Node | null => {
   // Validate that the parent group still exists
   const parentExists = nodes.some(
@@ -98,11 +108,19 @@ export const createOperatorNode = (
     return null;
   }
 
+  // Calculate position using centralized LayoutService with React Flow native methods
+  const operatorPosition = LayoutService.calculateOffsetPosition(
+    nodes,
+    "conditionalOperator",
+    reactFlowInstance,
+    parentId
+  );
+
   const operatorId = `conditionalOperator-${Date.now()}`;
   const operatorNode: Node = {
     id: operatorId,
     type: "conditionalOperator",
-    position: { x: 20, y: 120 }, // Position below conditions
+    position: operatorPosition, // Use centralized positioning
     parentId: parentId,
     extent: "parent",
     data: {
@@ -132,7 +150,8 @@ export const createRuleGroup = (
   selectedGroupId: string | null,
   setNodeCounter: (counter: NodeCounter) => void,
   setNodes: (nodes: Node[] | ((prev: Node[]) => Node[])) => void,
-  setSelectedGroupId: (id: string | null) => void
+  setSelectedGroupId: (id: string | null) => void,
+  existingNodes: Node[] = []
 ): Node[] => {
   const ruleGroupId = `resizableRuleGroup-${nodeCounter.resizableGroup + 1}`;
   const newCounter = {
@@ -141,10 +160,11 @@ export const createRuleGroup = (
   };
   setNodeCounter(newCounter);
 
-  // Calculate position using React Flow's recommended layouting approach
+  // Calculate position using React Flow's recommended layouting approach with Dagre
   const position = LayoutService.calculateNewNodePosition(
-    [],
+    existingNodes,
     "resizableGroup",
+    undefined, // reactFlowInstance not available in this context
     nodeCounter.resizableGroup
   );
 
@@ -167,10 +187,19 @@ export const createRuleGroup = (
 
   // Create Rule Name child node
   const ruleNameId = `${ruleGroupId}-name`;
+
+  // Calculate position using centralized LayoutService
+  const ruleNamePosition = LayoutService.calculateOffsetPosition(
+    existingNodes,
+    "ruleName",
+    undefined, // reactFlowInstance not available in this context
+    ruleGroupId
+  );
+
   const ruleNameNode: Node = {
     id: ruleNameId,
     type: "ruleName",
-    position: { x: 10, y: 10 }, // Relative to parent
+    position: ruleNamePosition, // Use centralized positioning
     parentId: ruleGroupId,
     extent: "parent",
     data: {
@@ -200,7 +229,8 @@ export const createActionGroup = (
   selectedGroupId: string | null,
   setNodeCounter: (counter: NodeCounter) => void,
   setNodes: (nodes: Node[] | ((prev: Node[]) => Node[])) => void,
-  setSelectedGroupId: (id: string | null) => void
+  setSelectedGroupId: (id: string | null) => void,
+  existingNodes: Node[] = []
 ): Node[] => {
   const actionGroupId = `resizableActionGroup-${
     nodeCounter.resizableGroup + 1
@@ -211,12 +241,25 @@ export const createActionGroup = (
   };
   setNodeCounter(newCounter);
 
-  // Calculate position using React Flow's recommended layouting approach
-  const position = LayoutService.calculateNewNodePosition(
-    [],
-    "resizableGroup",
-    nodeCounter.resizableGroup
-  );
+  // Calculate position based on context (main flow vs within group)
+  let position: XYPosition;
+  if (selectedGroupId) {
+    // Action group within a rule group - position relative to other action groups in same group
+    position = LayoutService.calculateOffsetPosition(
+      existingNodes,
+      "resizableGroup",
+      undefined,
+      selectedGroupId
+    );
+  } else {
+    // Action group in main flow - use normal positioning
+    position = LayoutService.calculateNewNodePosition(
+      existingNodes,
+      "resizableGroup",
+      undefined,
+      nodeCounter.resizableGroup
+    );
+  }
 
   const actionGroup: Node = {
     id: actionGroupId,
@@ -237,10 +280,19 @@ export const createActionGroup = (
 
   // Create Action Name child node
   const actionNameId = `${actionGroupId}-name`;
+
+  // Calculate position using centralized LayoutService
+  const actionNamePosition = LayoutService.calculateOffsetPosition(
+    existingNodes,
+    "actionName",
+    undefined, // reactFlowInstance not available in this context
+    actionGroupId
+  );
+
   const actionNameNode: Node = {
     id: actionNameId,
     type: "actionName",
-    position: { x: 10, y: 10 }, // Relative to parent
+    position: actionNamePosition, // Use centralized positioning
     parentId: actionGroupId,
     extent: "parent", // This is crucial for proper parent-child relationship
     data: {
@@ -298,14 +350,16 @@ export const createSimpleNode = (
 export const calculateNodePosition = (
   nodeCounter: NodeCounter,
   nodeType: string,
-  existingNodes: Node[] = []
+  existingNodes: Node[] = [],
+  reactFlowInstance?: ReactFlowInstance
 ): XYPosition => {
   const nodeIndex = nodeCounter[nodeType as keyof NodeCounter] || 0;
 
-  // Use React Flow's recommended layouting service
+  // Use React Flow's recommended layouting service with Dagre
   return LayoutService.calculateNewNodePosition(
     existingNodes,
     nodeType,
+    reactFlowInstance,
     nodeIndex
   );
 };
@@ -322,7 +376,8 @@ export const addNode = (
   setSelectedGroupId: (id: string | null) => void,
   onAddConditionToGroup: (groupId: string) => void,
   onAddOperatorToGroup: (groupId: string) => void,
-  existingNodes: Node[] = []
+  existingNodes: Node[] = [],
+  reactFlowInstance?: ReactFlowInstance
 ): Node[] => {
   // Handle condition node with context awareness
   if (nodeType === "condition") {
@@ -368,7 +423,8 @@ export const addNode = (
       selectedGroupId,
       setNodeCounter,
       setNodes,
-      setSelectedGroupId
+      setSelectedGroupId,
+      existingNodes
     );
   } else if (nodeType === "action") {
     // Create Action group container with resizable functionality
@@ -377,11 +433,17 @@ export const addNode = (
       selectedGroupId,
       setNodeCounter,
       setNodes,
-      setSelectedGroupId
+      setSelectedGroupId,
+      existingNodes
     );
   } else {
     // For initial, and other nodes
-    const position = calculateNodePosition(newCounter, nodeType, existingNodes);
+    const position = calculateNodePosition(
+      newCounter,
+      nodeType,
+      existingNodes,
+      reactFlowInstance
+    );
     const newNode = createSimpleNode(nodeType, newNodeId, position, setNodes);
     newNodes = [newNode];
   }

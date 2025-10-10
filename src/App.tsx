@@ -133,16 +133,28 @@ const App: React.FC = () => {
 
   const onAddConditionToGroup = useCallback(
     (parentId: string) => {
-      createConditionNode(parentId, nodes, setNodes, setSelectedGroupId);
+      createConditionNode(
+        parentId,
+        nodes,
+        setNodes,
+        setSelectedGroupId,
+        reactFlowInstance || undefined
+      );
     },
-    [setNodes, nodes, setSelectedGroupId]
+    [setNodes, nodes, setSelectedGroupId, reactFlowInstance]
   );
 
   const onAddOperatorToGroup = useCallback(
     (parentId: string) => {
-      createOperatorNode(parentId, nodes, setNodes, setSelectedGroupId);
+      createOperatorNode(
+        parentId,
+        nodes,
+        setNodes,
+        setSelectedGroupId,
+        reactFlowInstance || undefined
+      );
     },
-    [setNodes, nodes, setSelectedGroupId]
+    [setNodes, nodes, setSelectedGroupId, reactFlowInstance]
   );
 
   const onAddNode = useCallback(
@@ -156,7 +168,8 @@ const App: React.FC = () => {
         setSelectedGroupId,
         onAddConditionToGroup,
         onAddOperatorToGroup,
-        nodes
+        nodes,
+        reactFlowInstance || undefined
       );
     },
     [
@@ -166,6 +179,7 @@ const App: React.FC = () => {
       onAddConditionToGroup,
       onAddOperatorToGroup,
       nodes,
+      reactFlowInstance,
     ]
   );
 
