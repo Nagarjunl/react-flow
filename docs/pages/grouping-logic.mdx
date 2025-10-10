@@ -1,0 +1,228 @@
+# Complex Grouping Logic
+
+The React Flow Rule Engine implements sophisticated grouping logic for handling multiple condition nodes within Rule Groups and Action Groups. This system allows for complex rule combinations while maintaining logical consistency.
+
+## 🎯 Overview
+
+The grouping logic is designed to handle scenarios where multiple condition nodes need to be combined using logical operators. The system automatically detects valid groups and applies appropriate operators to create meaningful expressions.
+
+## 📋 Core Concepts
+
+### Valid Groups
+
+A valid group consists of:
+
+1. **Multiple condition nodes** connected to a single operator node
+2. **At least 2 effective operands** (conditions or sub-expressions)
+3. **Proper fan-in pattern** (multiple inputs to one operator)
+
+### Group Detection
+
+The system automatically detects groups based on:
+
+- **Edge connections** to operator nodes
+- **Fan-in patterns** (multiple conditions → single operator)
+- **Operator chains** (operators connecting to other operators)
+
+## 🔧 Grouping Rules
+
+### Rule 1: Basic Group Formation
+
+When multiple condition nodes connect to one operator node, they form a valid group:
+
+```
+Condition1 ──┐
+             ├──→ OR Operator
+Condition2 ──┘
+```
+
+**Result**: `(Condition1 OR Condition2)`
+
+### Rule 2: Multiple Groups
+
+When you have multiple groups, they can be combined:
+
+```
+Group 1: Condition1 + Condition2 → OR Operator
+Group 2: Condition3 + Condition4 → AND Operator
+```
+
+**Result**: `(Condition1 OR Condition2) AND (Condition3 AND Condition4)`
+
+### Rule 3: Complex Grouping
+
+Multiple groups can be connected with additional operators:
+
+```
+Group 1: (Condition1 OR Condition2)
+Group 2: (Condition3 AND Condition4)
+Connecting Operator: NOT
+```
+
+**Final Expression**: `(Condition1 OR Condition2) NOT (Condition3 AND Condition4)`
+
+## 🎨 Group Validation Rules
+
+### Group Validation Rule
+
+- **Only when a group is valid**, then only the Multiple operators from group → Single operator
+- Invalid groups cannot be combined with other groups
+- Each group must have at least 2 effective operands
+
+### Default Operator Rule
+
+- When two valid groups exist without a third operator connecting them, the default operator is **AND**
+- Example: `(user.Name Equals 45 AND user.Name Equals 66) AND (user.Name Equals YYYY OR products.price Less than 1000)`
+
+## 📊 Examples
+
+### Example 1: Simple Group
+
+```
+Condition1: user.Name Equals "John"
+Condition2: user.Designation Equals "Manager"
+Operator: OR
+```
+
+**Generated Expression**: `(user.Name Equals "John" OR user.Designation Equals "Manager")`
+
+### Example 2: Multiple Groups with Default AND
+
+```
+Group 1: (user.Name Equals "John" OR user.Designation Equals "Manager")
+Group 2: (sales.Amount >= 1000 AND sales.Quantity > 5)
+No connecting operator
+```
+
+**Generated Expression**: `(user.Name Equals "John" OR user.Designation Equals "Manager") AND (sales.Amount >= 1000 AND sales.Quantity > 5)`
+
+### Example 3: Complex Grouping with NOT
+
+```
+Group 1: (user.Name Equals "John" OR user.Designation Equals "Manager")
+Group 2: (sales.Amount < 500 OR sales.Quantity <= 2)
+Connecting Operator: NOT
+```
+
+**Generated Expression**: `(user.Name Equals "John" OR user.Designation Equals "Manager") NOT (sales.Amount < 500 OR sales.Quantity <= 2)`
+
+### Example 4: Three Groups
+
+```
+Group 1: (Condition1 OR Condition2)
+Group 2: (Condition3 AND Condition4)
+Group 3: (Condition5 OR Condition6)
+```
+
+**Generated Expression**: `(Condition1 OR Condition2) AND (Condition3 AND Condition4) AND (Condition5 OR Condition6)`
+
+## 🔍 Group Detection Algorithm
+
+The system uses the following algorithm to detect valid groups:
+
+1. **Start with unprocessed condition nodes**
+2. **Follow outgoing connections** to operator nodes
+3. **Check for fan-in pattern** (multiple inputs to operator)
+4. **Continue following operator chains**
+5. **Validate group completeness**
+6. **Mark nodes as processed**
+
+### Fan-in Pattern Detection
+
+```
+Condition1 ──┐
+             ├──→ Operator1 ──→ Operator2
+Condition2 ──┘
+```
+
+This creates a valid group with nested logic.
+
+## ⚠️ Common Issues
+
+### Issue 1: Invalid Group Formation
+
+**Problem**: Condition nodes not properly connected to operators
+
+**Solution**: Ensure all condition nodes connect to operator nodes in a fan-in pattern
+
+### Issue 2: Insufficient Operands
+
+**Problem**: Operator with only one input
+
+**Solution**: Connect at least 2 condition nodes to each operator
+
+### Issue 3: Orphaned Conditions
+
+**Problem**: Condition nodes not part of any group
+
+**Solution**: Connect orphaned conditions to operators or remove them
+
+## 🎯 Best Practices
+
+### Group Design
+
+1. **Plan your groups** before creating connections
+2. **Use descriptive condition names** for clarity
+3. **Keep groups logically related**
+4. **Test expressions** before finalizing
+
+### Operator Selection
+
+1. **Use AND** for conditions that must all be true
+2. **Use OR** for conditions where any can be true
+3. **Use NOT** to invert condition results
+4. **Combine operators** for complex logic
+
+### Validation
+
+1. **Check group validity** before generating JSON
+2. **Review generated expressions** for accuracy
+3. **Test with sample data** to verify logic
+4. **Use validation panel** to catch errors early
+
+## 🔧 Advanced Scenarios
+
+### Scenario 1: Nested Operators
+
+```
+Condition1 ──┐
+             ├──→ OR ──┐
+Condition2 ──┘         ├──→ AND
+                        │
+Condition3 ─────────────┘
+```
+
+**Expression**: `((Condition1 OR Condition2) AND Condition3)`
+
+### Scenario 2: Multiple Operator Levels
+
+```
+Condition1 ──┐
+             ├──→ OR ──┐
+Condition2 ──┘         ├──→ AND ──┐
+                        │         ├──→ NOT
+Condition3 ─────────────┘         │
+                                 │
+Condition4 ─────────────────────┘
+```
+
+**Expression**: `NOT ((Condition1 OR Condition2) AND Condition3) AND Condition4`
+
+## 📝 Implementation Notes
+
+- **Group detection** happens automatically during JSON generation
+- **Validation** occurs in real-time as you build your flow
+- **Error messages** provide specific guidance for fixing issues
+- **Expression generation** follows mathematical precedence rules
+
+## 🚀 Tips for Success
+
+1. **Start simple** with basic groups
+2. **Add complexity** gradually
+3. **Use the validation panel** to catch issues early
+4. **Test your expressions** with sample data
+5. **Review generated JSON** before using in production
+
+---
+
+The complex grouping logic system provides powerful capabilities for creating sophisticated business rules while maintaining logical consistency and validation.

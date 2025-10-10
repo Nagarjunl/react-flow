@@ -1,6 +1,6 @@
 # Validation System
 
-The React Flow Rule Engine includes a comprehensive validation system that provides real-time feedback on your rule configurations, helping you identify and fix issues before they cause problems.
+The React Flow Rule Engine includes a comprehensive validation system that provides real-time feedback on your rule configurations, helping you identify and fix issues before they cause problems. The system enforces strict rules for node connections, field validation, and complex grouping logic.
 
 ## Validation Panel
 
@@ -9,58 +9,162 @@ Located in the top-right corner of the interface, the validation panel continuou
 ### Features
 
 - **Real-time Validation**: Continuously checks your flow for errors
-- **Error Categories**: Different types of validation errors
+- **Error Categories**: Different types of validation errors with specific guidance
 - **Clickable Errors**: Click errors to highlight problematic nodes
 - **Collapsible Interface**: Expand/collapse to save space
+- **Detailed Error Messages**: Specific guidance for fixing each error type
 
 ## Error Types
 
+### Initial Node Validation 🚀
+
+#### Multiple Initial Nodes
+
+**What it is**: More than one Initial Node detected in the flow
+**Why it matters**: Only one Initial Node is allowed per workflow
+**How to fix**: Remove extra Initial Nodes, keeping only one
+
+#### Initial Node Not Connected
+
+**What it is**: Initial Node exists but has no outgoing connections
+**Why it matters**: Initial Node must connect to RuleName nodes
+**How to fix**: Connect Initial Node to RuleName nodes
+
+#### Initial Node in Group
+
+**What it is**: Initial Node is placed inside a ResizableGroup
+**Why it matters**: Initial Node must be separate from groups
+**How to fix**: Move Initial Node outside of any groups
+
+#### Initial Action Connection
+
+**What it is**: Connection between Initial Node and Action Group
+**Why it matters**: Initial Node can only connect to RuleName nodes
+**How to fix**: Remove direct connection, use RuleName as intermediary
+
+### Rule Group Validation 📦
+
+#### Nested Rule Groups
+
+**What it is**: Rule Group placed inside another Rule Group
+**Why it matters**: Nested Rule Groups are not allowed
+**How to fix**: Move inner Rule Group outside or restructure
+
+#### Rule Group Zero Conditions
+
+**What it is**: Rule Group with no Condition Nodes
+**Why it matters**: Rule Groups should contain conditions
+**How to fix**: Add Condition Nodes to the Rule Group
+
+#### Rule Group No Handles
+
+**What it is**: Rule Group has bottom handles (should only have top handles)
+**Why it matters**: Rule Groups should only connect to Initial via top handles
+**How to fix**: Remove bottom handles from Rule Group
+
+### Action Group Validation ⚡
+
+#### Action Group Zero Conditions
+
+**What it is**: Action Group with no Condition Nodes
+**Why it matters**: Action Groups must have at least one condition
+**How to fix**: Add Condition Nodes to the Action Group
+
+#### Action Group External Connection
+
+**What it is**: Action Group connected to external nodes
+**Why it matters**: Action Groups should only have internal connections
+**How to fix**: Remove external connections, keep only internal ones
+
+#### Action Group Connection
+
+**What it is**: Connection between Action Groups
+**Why it matters**: Action Groups are independent and cannot connect to each other
+**How to fix**: Remove connections between Action Groups
+
+### Connection Validation 🔗
+
+#### Forbidden Connections
+
+**What it is**: Connection between incompatible node types
+**Why it matters**: Prevents runtime errors and invalid logic
+**How to fix**: Check connection rules and use proper node types
+
+#### Missing Handles
+
+**What it is**: Attempting to connect nodes without proper handles
+**Why it matters**: Ensures proper connection points
+**How to fix**: Use correct connection handles for each node type
+
+#### Condition Direct Connection
+
+**What it is**: Direct connection between two Condition Nodes
+**Why it matters**: Conditions must go through operators
+**How to fix**: Add an Operator Node between conditions
+
+#### Operator Reversed Flow
+
+**What it is**: Operator connecting to Condition (reversed flow)
+**Why it matters**: Flow should go from conditions to operators
+**How to fix**: Reverse the connection direction
+
+#### Branching Not Allowed
+
+**What it is**: Node connecting to multiple downstream nodes
+**Why it matters**: Maintains linear flow structure
+**How to fix**: Use operators to combine multiple conditions
+
+### Field Validation 📝
+
+#### Field Incomplete
+
+**What it is**: Required fields not filled in a node
+**Why it matters**: All fields must be completed for proper functionality
+**How to fix**: Fill in all required fields before proceeding
+
+#### Field Required
+
+**What it is**: Missing required field values
+**Why it matters**: Prevents incomplete configurations
+**How to fix**: Complete all required fields for the node type
+
+### Grouping Logic Validation 🎯
+
+#### Grouping Invalid
+
+**What it is**: Invalid group formation detected
+**Why it matters**: Ensures proper logical grouping
+**How to fix**: Restructure groups according to grouping rules
+
+#### Grouping Default AND
+
+**What it is**: Two valid groups without connecting operator
+**Why it matters**: Default AND operator will be applied
+**How to fix**: Add explicit operator or accept default AND
+
+#### Grouping Operator Direct
+
+**What it is**: Direct connection between two Operator Nodes
+**Why it matters**: Operators should connect through conditions
+**How to fix**: Restructure to avoid direct operator connections
+
 ### Cycle Detection 🔄
 
-**What it is**: Detects circular connections in your flow
-
+**What it is**: Circular connections in your flow
 **Why it matters**: Prevents infinite loops in rule execution
-
 **How to fix**: Remove circular connections between nodes
-
-**Example**: If Node A connects to Node B, and Node B connects back to Node A
 
 ### Disconnected Nodes 🔌
 
 **What it is**: Nodes that aren't properly connected
-
 **Why it matters**: Ensures all nodes are part of the flow
-
 **How to fix**: Connect disconnected nodes or remove unused ones
-
-**Note**: Some nodes can be standalone (like Initial Node)
 
 ### Operator Input Errors ⚠️
 
 **What it is**: Operators with incorrect number of inputs
-
 **Why it matters**: Ensures logical operators work correctly
-
 **How to fix**: Connect appropriate number of inputs to operators
-
-**Examples**:
-
-- AND operator needs at least 2 inputs
-- OR operator needs at least 2 inputs
-- NOT operator needs exactly 1 input
-
-### Invalid Connections ❌
-
-**What it is**: Connections between incompatible node types
-
-**Why it matters**: Prevents runtime errors
-
-**How to fix**: Connect only compatible node types
-
-**Examples**:
-
-- Don't connect Initial Node directly to Action Node
-- Don't connect Action Node to Condition Node
 
 ## Validation Indicators
 
@@ -69,12 +173,14 @@ Located in the top-right corner of the interface, the validation panel continuou
 - **Red Icons**: Show on nodes with errors
 - **Hover Tooltips**: Display error details
 - **Click to Focus**: Click error indicators to highlight issues
+- **Red Borders**: Nodes with validation errors
+- **Green Borders**: Selected nodes (Rule Groups)
 
 ### Node Highlighting
 
-- **Red Border**: Nodes with validation errors
-- **Green Border**: Selected nodes (Rule Groups)
 - **Error Icons**: Small red icons on problematic nodes
+- **Validation Panel**: Centralized error display
+- **Real-time Updates**: Errors update as you make changes
 
 ## Validation Status
 
@@ -90,18 +196,41 @@ Located in the top-right corner of the interface, the validation panel continuou
 - "X errors found" - Shows number of errors
 - "Validating..." - System is checking for errors
 
+## Field Validation Rules
+
+### Required Fields by Node Type
+
+- **Initial Node**: `workflowName`
+- **RuleName Node**: `ruleName`
+- **Condition Node**: `selectedTable`, `selectedField`, `expression`, `value`
+- **ActionName Node**: `actionType`, `actionName`
+- **ConditionalOperator Node**: `operator`
+
+### Validation Timing
+
+- **Prevent adding new nodes** if current node fields are incomplete
+- **Show validation errors** when trying to generate JSON
+- **Real-time validation** as you type in fields
+
+### Error Handling
+
+- **Show error message** and prevent the action
+- **Highlight the incomplete fields** with red borders
+- **Provide specific guidance** for fixing each error
+
 ## Using the Validation System
 
 ### Real-time Monitoring
 
 The validation system runs continuously in the background, checking your flow as you make changes.
 
-### Error Resolution
+### Error Resolution Process
 
 1. **Check the Validation Panel** - Look for error messages
 2. **Click on Errors** - Click error messages to highlight problematic nodes
-3. **Fix the Issues** - Address the specific problems mentioned
-4. **Re-validate** - The system will automatically re-check after changes
+3. **Read Error Details** - Understand what the error means
+4. **Fix the Issues** - Address the specific problems mentioned
+5. **Re-validate** - The system will automatically re-check after changes
 
 ### Best Practices
 
@@ -109,6 +238,7 @@ The validation system runs continuously in the background, checking your flow as
 - **Fix Errors Early**: Address issues as soon as they appear
 - **Understand Error Types**: Learn what each error type means
 - **Use Visual Indicators**: Pay attention to red borders and error icons
+- **Complete Fields First**: Fill all required fields before adding new nodes
 
 ## Common Validation Scenarios
 
@@ -132,6 +262,16 @@ The validation system runs continuously in the background, checking your flow as
 - **Error**: "Node has incomplete configuration"
 - **Fix**: Fill in all required fields in the node
 
+### Scenario 5: Invalid Grouping
+
+- **Error**: "Invalid group formation"
+- **Fix**: Restructure groups according to grouping rules
+
+### Scenario 6: Forbidden Connections
+
+- **Error**: "Invalid connection between node types"
+- **Fix**: Check connection rules and use proper node types
+
 ## Troubleshooting Validation Issues
 
 ### Validation Panel Not Showing
@@ -152,20 +292,43 @@ The validation system runs continuously in the background, checking your flow as
 - **Solution**: Review the error message and adjust your flow accordingly
 - **Note**: Some warnings might be acceptable depending on your use case
 
-## Advanced Validation
+## Advanced Validation Features
 
-### Custom Validation Rules
+### Complex Grouping Logic Validation
 
-The system includes built-in validation rules for:
+The system validates complex grouping logic including:
 
-- Node connectivity
-- Data type compatibility
-- Required field validation
-- Logical flow validation
+- **Valid group detection** based on operator connections
+- **Fan-in pattern validation** (multiple conditions → single operator)
+- **Default operator application** when groups lack connecting operators
+- **Group completeness checking** to ensure all conditions are properly grouped
 
-### Performance Considerations
+### Connection Rule Enforcement
 
-- Validation runs in real-time
-- Large flows may take longer to validate
-- System optimizes validation for performance
-- Errors are cached to improve responsiveness
+The system enforces strict connection rules:
+
+- **Node type compatibility** checking
+- **Flow direction validation** (no reversed flows)
+- **Branching prevention** (single outgoing connection per node)
+- **Cycle detection** and prevention
+
+### Field Validation
+
+Comprehensive field validation includes:
+
+- **Required field checking** for all node types
+- **Data type validation** for expressions and values
+- **Format validation** for specific field types
+- **Completeness checking** before allowing new node creation
+
+## Performance Considerations
+
+- **Real-time validation** runs efficiently in the background
+- **Large flows** may take longer to validate
+- **System optimizes** validation for performance
+- **Errors are cached** to improve responsiveness
+- **Incremental validation** updates only changed parts
+
+---
+
+The comprehensive validation system ensures that your workflows are properly structured, logically consistent, and ready for JSON generation and deployment.

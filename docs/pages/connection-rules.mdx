@@ -1,0 +1,311 @@
+# Connection Rules & Restrictions
+
+The React Flow Rule Engine enforces strict connection rules to ensure proper flow structure and logical consistency. Understanding these rules is essential for building valid workflows.
+
+## 🎯 Overview
+
+Connection rules define which node types can connect to each other and how they should be connected. These rules prevent invalid configurations and ensure that your workflows generate meaningful JSON.
+
+## 📋 Node Connection Matrix
+
+| Source Node | Target Node  | Allowed | Notes                    |
+| ----------- | ------------ | ------- | ------------------------ |
+| Initial     | RuleName     | ✅      | Direct connection only   |
+| Initial     | Rule Group   | ❌      | Must go through RuleName |
+| Initial     | Action Group | ❌      | Not allowed              |
+| RuleName    | Rule Group   | ✅      | Via bottom handle        |
+| RuleName    | Action Group | ❌      | Not allowed              |
+| Condition   | Operator     | ✅      | Within groups            |
+| Condition   | Condition    | ❌      | Must use operator        |
+| Operator    | Operator     | ✅      | Within groups            |
+| Operator    | Condition    | ❌      | Reversed flow            |
+| Action      | Action       | ❌      | Independent groups       |
+
+## 🚀 Initial Node Restrictions
+
+### ✅ Allowed Connections
+
+- **Initial → RuleName** (direct connection only)
+- **Multiple RuleName connections** (Initial can connect to multiple RuleName nodes)
+
+### ❌ Forbidden Connections
+
+- **Initial → Rule Group** (must go through RuleName)
+- **Initial → Action Group** (not allowed)
+- **Initial → Condition** (not allowed)
+- **Initial → Operator** (not allowed)
+- **Initial → Action** (not allowed)
+
+### Rules
+
+1. **Only one Initial Node** allowed for the whole flow chart
+2. **All RuleName nodes** must connect to Initial (no orphaned RuleName nodes)
+3. **Initial Node cannot be inside** any ResizableGroup (completely separate)
+4. **Only Initial node allowed multiple connections** (but only to RuleName nodes)
+
+## 📝 Rule Name Node Restrictions
+
+### ✅ Allowed Connections
+
+- **RuleName ← Initial** (via top handle)
+- **RuleName → Rule Group** (via bottom handle)
+
+### ❌ Forbidden Connections
+
+- **RuleName → Action Group** (not allowed)
+- **RuleName → Condition** (not allowed)
+- **RuleName → Operator** (not allowed)
+- **RuleName → Action** (not allowed)
+
+### Rules
+
+- **Must connect to Initial Node** via top handle
+- **Cannot be orphaned** (must be connected to Initial)
+- **Can connect to Rule Group** via bottom handle
+
+## 🔍 Condition Node Restrictions
+
+### ✅ Allowed Connections
+
+- **Condition → Operator** (within groups)
+- **Condition → Action** (within Action Groups)
+
+### ❌ Forbidden Connections
+
+- **Condition → Condition** (must use operator)
+- **Condition → Initial** (not allowed)
+- **Condition → RuleName** (not allowed)
+
+### Rules
+
+- **Cannot connect directly to other Condition Nodes**
+- **Must be inside Rule Groups or Action Groups**
+- **All fields must be completed** before adding new nodes
+
+## ⚡ Action Name Node Restrictions
+
+### ✅ Allowed Connections
+
+- **Action ← Condition** (within Action Groups)
+- **Action ← Operator** (within Action Groups)
+
+### ❌ Forbidden Connections
+
+- **Action → Action** (independent groups)
+- **Action → Any external node** (no external connections)
+- **Action → Initial** (not allowed)
+- **Action → RuleName** (not allowed)
+
+### Rules
+
+- **Must be inside Action Groups**
+- **No external connections** (only internal within Action Group)
+- **Cannot connect to other Action Groups**
+- **All fields must be completed** before adding new nodes
+
+## 🔗 Conditional Operator Node Restrictions
+
+### ✅ Allowed Connections
+
+- **Operator ← Condition** (multiple conditions, fan-in pattern)
+- **Operator → Operator** (within groups)
+- **Operator → Action** (within Action Groups)
+
+### ❌ Forbidden Connections
+
+- **Operator → Condition** (reversed flow not allowed)
+- **Operator → Initial** (not allowed)
+- **Operator → RuleName** (not allowed)
+
+### Rules
+
+- **Must have at least 2 effective operands**
+- **Cannot connect directly to other Operator Nodes** (no operator-to-operator direct connections)
+- **Must be inside groups** (Rule Groups or Action Groups)
+
+## 📦 Resizable Group Node Restrictions
+
+### Rule Group Restrictions
+
+#### ✅ Allowed Connections
+
+- **Rule Group ← RuleName** (via top handle)
+- **Rule Group contains** Condition and Operator nodes
+- **Rule Group contains** Action Groups (nested)
+
+#### ❌ Forbidden Connections
+
+- **Rule Group → Rule Group** (no nested Rule Groups)
+- **Rule Group → Initial** (not allowed)
+- **Rule Group → Action Group** (external connection)
+
+#### Rules
+
+- **One or more Rule Group Nodes** allowed in flow
+- **May have one OR more Condition Nodes** (single condition is valid)
+- **Action Groups nested INSIDE Rule Groups** (not external connections)
+- **Rule Groups have no bottom handles** (separate, no external connections except to Initial via top handle)
+- **No nested Rule Groups** (Rule Group within another Rule Group not allowed)
+
+### Action Group Restrictions
+
+#### ✅ Allowed Connections
+
+- **Action Group contains** Condition and Action nodes
+- **Action Group contains** Operator nodes (for complex logic)
+
+#### ❌ Forbidden Connections
+
+- **Action Group → Action Group** (independent groups)
+- **Action Group → Initial** (not allowed)
+- **Action Group → RuleName** (not allowed)
+- **Action Group → Rule Group** (external connection)
+
+#### Rules
+
+- **Must have one OR more Condition Nodes** (zero not allowed)
+- **No connections between Action Groups** (each Action Group is completely independent)
+- **No external connections** to/from Action Groups (only internal connections within the Action Group)
+- **Action Group is a parent container** with valid groups inside it
+
+## 🔄 Flow Control Rules
+
+### Linear Flow Validation
+
+- **No cycles allowed** - prevents infinite loops
+- **No branching** - each node can connect to only one downstream node (except Initial)
+- **Single outgoing connection** per node (except Initial node)
+
+### Fan-in Pattern
+
+- **Multiple conditions → Single operator** (allowed)
+- **Multiple operators → Single operator** (allowed within groups)
+- **Multiple groups → Single operator** (allowed for complex logic)
+
+## ⚠️ Common Connection Errors
+
+### Error 1: Invalid Connection Type
+
+**Message**: "Invalid connection between [NodeType1] and [NodeType2]"
+
+**Cause**: Trying to connect incompatible node types
+
+**Solution**: Check the connection matrix above for allowed connections
+
+### Error 2: Reversed Flow
+
+**Message**: "Operators cannot connect directly to conditions (reversed flow not allowed)"
+
+**Cause**: Connecting operator to condition instead of condition to operator
+
+**Solution**: Reverse the connection direction
+
+### Error 3: Branching Not Allowed
+
+**Message**: "Branching out not allowed—each node can connect to only one downstream node"
+
+**Cause**: Trying to connect one node to multiple downstream nodes
+
+**Solution**: Use operators to combine multiple conditions instead
+
+### Error 4: Cycle Detection
+
+**Message**: "This connection would create a cycle"
+
+**Cause**: Creating a circular connection that would cause infinite loops
+
+**Solution**: Remove the circular connection
+
+### Error 5: Orphaned Nodes
+
+**Message**: "Node is not connected to the main flow"
+
+**Cause**: Node exists but is not part of the main workflow
+
+**Solution**: Connect the node to the main flow or remove it
+
+## 🎯 Best Practices
+
+### Connection Planning
+
+1. **Plan your flow** before creating connections
+2. **Start with Initial Node** and work downward
+3. **Use Rule Groups** to organize related logic
+4. **Keep connections clean** and avoid crossing lines
+
+### Validation
+
+1. **Check validation panel** regularly
+2. **Fix errors immediately** as they appear
+3. **Test connections** before finalizing
+4. **Review generated JSON** for accuracy
+
+### Flow Structure
+
+1. **Initial → RuleName → Rule Group → Conditions → Operators → Actions**
+2. **Use Action Groups** for organizing actions
+3. **Keep groups logically related**
+4. **Avoid deep nesting** when possible
+
+## 🔧 Troubleshooting Connections
+
+### Issue: Cannot Connect Nodes
+
+**Check**:
+
+- Are the node types compatible?
+- Are you connecting in the right direction?
+- Are all required fields filled?
+
+### Issue: Validation Errors
+
+**Check**:
+
+- Are there any cycles in your flow?
+- Are all nodes properly connected?
+- Are there any orphaned nodes?
+
+### Issue: JSON Generation Fails
+
+**Check**:
+
+- Are all validation errors resolved?
+- Are all required fields completed?
+- Is the flow structure correct?
+
+## 📝 Connection Examples
+
+### Valid Flow Example
+
+```
+Initial Node
+    ↓
+RuleName Node
+    ↓
+Rule Group
+    ├── Condition1 ──┐
+    │                ├──→ Operator ──→ Action Group
+    └── Condition2 ──┘                    ├── Condition3
+                                          └── Action1
+```
+
+### Invalid Flow Examples
+
+```
+❌ Initial → Action (direct connection)
+❌ Condition → Condition (must use operator)
+❌ Operator → Condition (reversed flow)
+❌ Action Group → Action Group (independent)
+```
+
+## 🚀 Tips for Success
+
+1. **Follow the connection matrix** strictly
+2. **Use validation panel** to catch errors early
+3. **Plan your flow structure** before building
+4. **Test connections** as you build
+5. **Review generated JSON** before using in production
+
+---
+
+Understanding and following these connection rules is essential for building valid, functional workflows in the React Flow Rule Engine.

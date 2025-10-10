@@ -1,6 +1,6 @@
 # Node Types
 
-The React Flow Rule Engine provides several specialized node types, each designed for specific purposes in building business rules and workflows.
+The React Flow Rule Engine provides several specialized node types, each designed for specific purposes in building business rules and workflows. Each node type has specific validation requirements and connection rules.
 
 ## 🚀 Initial Node
 
@@ -17,10 +17,47 @@ The React Flow Rule Engine provides several specialized node types, each designe
 - Single bottom connection handle
 - Red border if validation fails
 
+### Connection Rules
+
+- ✅ **Only one Initial Node** allowed for the whole flow chart
+- ✅ **Initial → RuleName node** (direct connection only)
+- ✅ **All RuleName nodes** must connect to Initial (no orphaned RuleName nodes)
+- ✅ **Initial Node cannot be inside** any ResizableGroup (completely separate)
+- ❌ **No connection between Action Group and Initial Node**
+- ✅ **Only Initial node allowed multiple connections** (but only to RuleName nodes)
+
 ### Usage Tips
 
 - Always start your workflow with this node
 - Use descriptive names like "Commission Calculation" or "Bonus Rules"
+- Connect only to RuleName nodes
+
+## 📝 Rule Name Node
+
+**Purpose**: Names and identifies individual rules within the workflow
+
+### Configuration
+
+- **Rule Name**: Enter a descriptive name for the rule
+- **Validation**: Name is required (cannot be empty)
+
+### Visual Indicators
+
+- Green gradient background
+- Top and bottom connection handles
+- Red border if validation fails
+
+### Connection Rules
+
+- ✅ **Must connect to Initial Node** via top handle
+- ✅ **Can connect to Rule Group** via bottom handle
+- ❌ **Cannot be orphaned** (must be connected to Initial)
+
+### Usage Tips
+
+- Use descriptive rule names
+- Each rule should have a unique name
+- Connect to Initial Node first, then to Rule Groups
 
 ## 🔍 Condition Node
 
@@ -61,13 +98,20 @@ Enter the comparison value
 - Input/output connection handles
 - Red border if validation fails
 
+### Connection Rules
+
+- ✅ **Can connect to Operator Node** (within groups)
+- ❌ **Cannot connect directly to other Condition Nodes**
+- ✅ **Must be inside Rule Groups or Action Groups**
+
 ### Usage Tips
 
 - Field selection updates based on table selection
 - Expression options change based on field type
 - Use appropriate value formats (numbers for numeric, text for varchar)
+- All fields are required before adding new nodes
 
-## ⚡ Action Node
+## ⚡ Action Name Node
 
 **Purpose**: Defines what happens when conditions are met
 
@@ -93,10 +137,18 @@ Enter descriptive name for the action
 - Input/output connection handles
 - Red border if validation fails
 
+### Connection Rules
+
+- ✅ **Must be inside Action Groups**
+- ✅ **Can receive connections from Condition Nodes**
+- ❌ **Cannot connect to other Action Groups**
+- ❌ **No external connections** (only internal within Action Group)
+
 ### Usage Tips
 
 - Use descriptive action names
 - Choose appropriate action types for your business logic
+- All fields are required before adding new nodes
 
 ## 🔗 Conditional Operator Node
 
@@ -112,19 +164,27 @@ Enter descriptive name for the action
 - Multiple connection handles
 - Red border if validation fails
 
+### Connection Rules
+
+- ✅ **Can connect multiple Condition Nodes** (fan-in pattern)
+- ✅ **Can connect to other Operator Nodes** (within groups)
+- ❌ **Cannot connect directly to other Operator Nodes** (no operator-to-operator direct connections)
+- ❌ **Cannot connect to Condition Nodes** (reversed flow not allowed)
+
 ### Usage Tips
 
 - **AND**: All conditions must be true
 - **OR**: At least one condition must be true
 - **NOT**: Inverts the condition result
+- Must have at least 2 effective operands
 
-## 📦 Rule Group Node
+## 📦 Resizable Group Node (Rule Group)
 
 **Purpose**: Container for organizing related rules
 
 ### Configuration
 
-- **Label**: Enter group name
+- **Label**: Enter group name (Rule Group or Action Group)
 - **Resizable**: Can be resized by dragging corners
 
 ### Visual Indicators
@@ -133,28 +193,97 @@ Enter descriptive name for the action
 - Green border when selected
 - Can contain child nodes
 
+### Rule Group Restrictions
+
+- ✅ **One or more Rule Group Nodes** allowed in flow
+- ✅ **May have one OR more Condition Nodes** (single condition is valid, multiple conditions are also valid)
+- ✅ **Action Groups nested INSIDE Rule Groups** (not external connections)
+- ✅ **Rule Groups have no bottom handles** (separate, no external connections except to Initial via top handle)
+- ❌ **No nested Rule Groups** (Rule Group within another Rule Group not allowed)
+
+### Action Group Restrictions
+
+- ✅ **Must have one OR more Condition Nodes** (zero not allowed)
+- ✅ **No connections between Action Groups** (each Action Group is completely independent)
+- ✅ **No external connections** to/from Action Groups (only internal connections within the Action Group)
+- ✅ **Action Group is a parent container** with valid groups inside it
+
 ### Usage Tips
 
 - Use groups to organize complex rule logic
 - Click to select group for adding child nodes
 - Resize to accommodate multiple child nodes
+- Rule Groups contain conditions and operators
+- Action Groups contain conditions and actions
 
-## Node Connection Rules
+## Complex Grouping Logic
 
-### Valid Connections
+### Valid Groups
 
-- Initial Node → Rule Group
-- Rule Group → Condition Node
-- Rule Group → Operator Node
-- Condition Node → Operator Node
-- Operator Node → Action Node
-- Condition Node → Action Node
+When more than one Condition Node exists, they form groups based on operator connections:
 
-### Invalid Connections
+1. **Group 1**: Multiple conditions → Single operator (e.g., Condition1 + Condition2 → OR operator)
+2. **Group 2**: Multiple conditions → Single operator (e.g., Condition3 + Condition4 → AND operator)
+3. **Group 3**: Multiple conditions → Single operator (e.g., Condition1 + Condition2 + Condition3 → OR operator)
 
-- Initial Node → Action Node (direct)
-- Action Node → Condition Node
-- Operator Node → Initial Node
+### Group Validation Rule
+
+- **Only when a group is valid**, then only the Multiple operators from group → Single operator
+- Invalid groups cannot be combined with other groups
+
+### Default Operator Rule
+
+- When two valid groups exist without a third operator connecting them, the default operator is AND
+- Example: `(Condition1 OR Condition2) AND (Condition3 AND Condition4)`
+
+### Example Complex Expression
+
+Final expression result: `(Condition1 OR Condition2) NOT (Condition3 AND Condition4)`
+
+## Connection Rules Summary
+
+### Allowed Connections
+
+- ✅ Initial → RuleName (via top handles)
+- ✅ Condition → Operator (within groups)
+- ✅ Operator → Operator (within groups)
+
+### Forbidden Connections
+
+- ❌ No condition-to-condition connections
+- ❌ No reversed flow (operator → condition)
+- ❌ No branching (single outgoing connection per node)
+- ❌ No cycles allowed
+- ❌ No connection between Action Group Nodes and Rule Group Nodes
+- ❌ No connection between Action Group Node and Initial Node
+- ❌ No connection between Action Group Nodes
+
+## Field Validation Rules
+
+### Required Fields
+
+All required fields in a node must be filled before adding any new node:
+
+- **Initial Node**: `workflowName`
+- **RuleName Node**: `ruleName`
+- **Condition Node**: `selectedTable`, `selectedField`, `expression`, `value`
+- **ActionName Node**: `actionType`, `actionName`
+- **ConditionalOperator Node**: `operator`
+
+### Validation Timing
+
+- **Prevent adding new nodes** if current node fields are incomplete
+- **Show validation errors** when trying to generate JSON
+
+### Error Handling
+
+- **Show error message** and prevent the action
+- **Highlight the incomplete fields**
+
+## Delete Restrictions
+
+- **Delete the Rule Name node** then delete the entire Rule group node
+- **Delete the Action Name node** then delete the entire Action group node
 
 ## Best Practices
 
