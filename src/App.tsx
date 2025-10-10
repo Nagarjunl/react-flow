@@ -44,6 +44,7 @@ import {
   downloadJsonFile,
 } from "./services/jsonOperations";
 import { getThemeConfig, getMiniMapConfig } from "./services/uiUtils";
+import { ValidationError } from "./services/validationService";
 
 // Node counter interface
 interface NodeCounter {
@@ -67,6 +68,9 @@ const App: React.FC = () => {
   const [generatedJson, setGeneratedJson] = useState<string>("");
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
+  const [highlightedErrorNodeId, setHighlightedErrorNodeId] = useState<
+    string | null
+  >(null);
   const [nodeCounter, setNodeCounter] = useState<NodeCounter>({
     initial: 0,
     resizableGroup: 0,
@@ -81,6 +85,33 @@ const App: React.FC = () => {
   const { validationState, validateConnection, hasNodeErrors, getNodeErrors } =
     useValidation(nodes, edges);
 
+  // Handle error click to highlight and focus on problematic node
+  const handleErrorClick = useCallback(
+    (error: ValidationError) => {
+      console.log("Error clicked:", error);
+
+      if (error.nodeId && reactFlowInstance) {
+        // Set the highlighted node
+        setHighlightedErrorNodeId(error.nodeId);
+
+        // Use React Flow's native method to fit view to specific node
+        reactFlowInstance.fitView({
+          nodes: [{ id: error.nodeId }],
+          duration: 800,
+          padding: 0.2,
+          minZoom: 0.5,
+          maxZoom: 1.5,
+        });
+
+        // Clear highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedErrorNodeId(null);
+        }, 3000);
+      }
+    },
+    [reactFlowInstance]
+  );
+
   const onConnect = useCallback(
     (params: Connection) => {
       // Validate connection before adding
@@ -89,7 +120,7 @@ const App: React.FC = () => {
       if (!validation.isValid) {
         // Show error message
         const errorMessages = validation.errors
-          .map((error) => error.message)
+          .map((error: ValidationError) => error.message)
           .join("\n");
         alert(`Invalid connection:\n${errorMessages}`);
         return;
@@ -322,10 +353,7 @@ const App: React.FC = () => {
               isValid={validationState.isValid}
               summary={validationState.summary}
               isValidationInProgress={validationState.isValidationInProgress}
-              onErrorClick={(error) => {
-                console.log("Error clicked:", error);
-                // You can add logic to highlight the specific node or edge
-              }}
+              onErrorClick={handleErrorClick}
             />
           </Box>
 
@@ -353,6 +381,23 @@ const App: React.FC = () => {
                   };
                 }
 
+                // Add special highlighting for clicked error nodes
+                if (node.id === highlightedErrorNodeId) {
+                  const nodeErrors = getNodeErrors(node.id);
+                  return {
+                    ...node,
+                    data: {
+                      ...node.data,
+                      hasValidationErrors: true,
+                      validationErrors: nodeErrors,
+                      onErrorClick: handleErrorClick,
+                      border: "3px solid #ff6b35",
+                      boxShadow: "0 0 15px rgba(255, 107, 53, 0.8)",
+                      animation: "pulse 1s ease-in-out infinite",
+                    },
+                  };
+                }
+
                 // Add validation error highlighting
                 if (hasNodeErrors(node.id)) {
                   const nodeErrors = getNodeErrors(node.id);
@@ -362,6 +407,7 @@ const App: React.FC = () => {
                       ...node.data,
                       hasValidationErrors: true,
                       validationErrors: nodeErrors,
+                      onErrorClick: handleErrorClick,
                       border: "2px solid #ef4444",
                       boxShadow: "0 0 8px rgba(239, 68, 68, 0.5)",
                     },
@@ -375,6 +421,7 @@ const App: React.FC = () => {
                     ...node.data,
                     hasValidationErrors: false,
                     validationErrors: [],
+                    onErrorClick: handleErrorClick,
                     border: node.data?.border || "2px solid transparent",
                     boxShadow: node.data?.boxShadow || "none",
                   },

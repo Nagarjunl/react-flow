@@ -5,6 +5,7 @@ import { tableSchema } from "../../constants/constant";
 import { Box, Typography, TextField, Autocomplete, Alert } from "@mui/material";
 import type { ConditionNodeProps } from "../../types/nodeTypes";
 import ValidationIndicator from "../ValidationIndicator";
+import { ValidationError } from "../../services/validationService";
 
 const ConditionNode: React.FC<ConditionNodeProps> = ({
   data,
@@ -343,6 +344,9 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
           warnings={[]}
           position="top-right"
           size="small"
+          onErrorClick={
+            data.onErrorClick as ((error: ValidationError) => void) | undefined
+          }
         />
       ) : null}
     </Box>

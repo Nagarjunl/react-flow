@@ -3,6 +3,7 @@ import { NodeResizer } from "@xyflow/react";
 import { Box, Typography } from "@mui/material";
 import type { ResizableGroupNodeProps } from "../../types/nodeTypes";
 import ValidationIndicator from "../ValidationIndicator";
+import { ValidationError } from "../../services/validationService";
 
 const ResizableGroupNode: React.FC<ResizableGroupNodeProps> = ({
   data,
@@ -52,6 +53,9 @@ const ResizableGroupNode: React.FC<ResizableGroupNodeProps> = ({
           warnings={[]}
           position="top-right"
           size="small"
+          onErrorClick={
+            data.onErrorClick as ((error: ValidationError) => void) | undefined
+          }
         />
       ) : null}
     </Box>

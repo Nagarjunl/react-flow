@@ -4,6 +4,7 @@ import { nodeColors, conditionalOperators } from "../../types/nodeTypes";
 import { Box, Typography, Autocomplete, TextField, Alert } from "@mui/material";
 import type { ConditionalOperatorNodeProps } from "../../types/nodeTypes";
 import ValidationIndicator from "../ValidationIndicator";
+import { ValidationError } from "../../services/validationService";
 
 const ConditionalOperatorNode: React.FC<ConditionalOperatorNodeProps> = ({
   data,
@@ -129,6 +130,9 @@ const ConditionalOperatorNode: React.FC<ConditionalOperatorNodeProps> = ({
           warnings={[]}
           position="top-right"
           size="small"
+          onErrorClick={
+            data.onErrorClick as ((error: ValidationError) => void) | undefined
+          }
         />
       ) : null}
     </Box>

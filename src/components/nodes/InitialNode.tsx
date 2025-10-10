@@ -4,6 +4,7 @@ import { nodeColors } from "../../types/nodeTypes";
 import { Box, Typography, TextField, Alert } from "@mui/material";
 import type { InitialNodeProps } from "../../types/nodeTypes";
 import ValidationIndicator from "../ValidationIndicator";
+import { ValidationError } from "../../services/validationService";
 
 const InitialNode: React.FC<InitialNodeProps> = ({
   data,
@@ -110,6 +111,9 @@ const InitialNode: React.FC<InitialNodeProps> = ({
           warnings={[]}
           position="top-right"
           size="small"
+          onErrorClick={
+            data.onErrorClick as ((error: ValidationError) => void) | undefined
+          }
         />
       ) : null}
     </Box>
