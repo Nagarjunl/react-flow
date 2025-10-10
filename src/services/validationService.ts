@@ -45,6 +45,7 @@ export interface ValidationError {
   edgeId?: string;
   ruleGroupId?: string;
   actionGroupId?: string;
+  errorNodeId?: string; // The actual problematic node ID
 }
 
 export interface ValidationResult {
@@ -357,89 +358,6 @@ const findConditionalOperatorsForGroup = (
 
   return conditionalOperators;
 };
-
-// Validate rule group structure (same logic as jsonGenerator)
-// const validateRuleGroupStructure = (
-//   ruleGroupId: string,
-//   nodes: Node[],
-//   edges: Edge[],
-//   conditionNodes: Node[],
-//   conditionalOperatorNodes: Node[]
-// ): ValidationError[] => {
-//   const errors: ValidationError[] = [];
-//   const allNodes = [...conditionNodes, ...conditionalOperatorNodes];
-//   const processedNodes = new Set<string>();
-//   const visited = new Set<string>();
-
-//   // Check for cycles and disconnected nodes using DFS
-//   const checkNode = (nodeId: string) => {
-//     if (visited.has(nodeId)) {
-//       if (processedNodes.has(nodeId)) return; // Back edge, cycle detected
-//       errors.push({
-//         type: "cycle",
-//         message: `Cycle detected in rule group ${ruleGroupId} at node ${nodeId}`,
-//         nodeId,
-//         ruleGroupId,
-//       });
-//       return;
-//     }
-//     visited.add(nodeId);
-//     processedNodes.add(nodeId);
-
-//     const node = allNodes.find((n) => n.id === nodeId);
-//     if (!node) return;
-
-//     const outgoers = getOutgoers(node, allNodes, edges);
-//     for (const outgoer of outgoers) {
-//       checkNode(outgoer.id);
-//     }
-
-//     const incomers = getIncomers(node, allNodes, edges);
-//     if (node.type === "conditionalOperator" && incomers.length < 1) {
-//       errors.push({
-//         type: "operator_input",
-//         message: `Operator at ID ${node.id} in rule group ${ruleGroupId} has no incoming conditions`,
-//         nodeId: node.id,
-//         ruleGroupId,
-//       });
-//     }
-//     if (node.type === "conditionalOperator" && incomers.length === 1) {
-//       const outgoerConditions = getOutgoers(node, allNodes, edges).filter(
-//         (n) => n.type === "condition"
-//       );
-//       if (outgoerConditions.length === 0) {
-//         errors.push({
-//           type: "operator_single",
-//           message: `Operator at ID ${node.id} in rule group ${ruleGroupId} has only one condition and no further connections`,
-//           nodeId: node.id,
-//           ruleGroupId,
-//         });
-//       }
-//     }
-//   };
-
-//   // Start DFS from each condition node
-//   for (const condition of conditionNodes) {
-//     if (!processedNodes.has(condition.id)) {
-//       checkNode(condition.id);
-//     }
-//   }
-
-//   // Check for unprocessed nodes (disconnected)
-//   const groupNodes = allNodes.filter((n) => n.parentId === ruleGroupId);
-//   for (const node of groupNodes) {
-//     if (!processedNodes.has(node.id)) {
-//       errors.push({
-//         type: "disconnected",
-//         message: `Disconnected node ${node.id} found in rule group ${ruleGroupId}`,
-//         nodeId: node.id,
-//         ruleGroupId,
-//       });
-//     }
-//   }
-
-//   return errors;
-// };
 
 const validateRuleGroupStructure = (
   ruleGroupId: string,
@@ -1191,14 +1109,17 @@ export const validateGroupingLogic = (
 
     // Detect valid groups
     const validGroups = detectValidGroups(groupId, nodes, edges);
+    console.log("validGroups", validGroups);
 
     // Validate each group
     for (const group of validGroups) {
       if (!group.isValid) {
+        console.log("group", group);
         errors.push({
           type: "grouping_invalid",
           message: `Invalid group detected: ${group.reason}`,
           nodeId: group.id,
+          errorNodeId: group.errorNodeId,
           ruleGroupId: groupId,
         });
       }
@@ -1337,6 +1258,7 @@ const buildGroupFromCondition = (
     nodes: groupNodes,
     isValid: isValid.isValid,
     reason: isValid.reason,
+    errorNodeId: isValid.errorNodeId,
   };
 };
 
@@ -1344,24 +1266,22 @@ const buildGroupFromCondition = (
 const validateGroup = (
   groupNodes: Node[],
   edges: Edge[]
-): { isValid: boolean; reason?: string } => {
+): { isValid: boolean; reason?: string; errorNodeId?: string } => {
   const operators = groupNodes.filter(
     (node) => node.type === "conditionalOperator"
   );
-  console.log("groupNodes", groupNodes);
   // Check if group has at least 2 effective operands
   for (const operator of operators) {
     const incomers = getIncomers(operator, groupNodes, edges);
     const outgoers = getOutgoers(operator, groupNodes, edges);
-    console.log("operator", operator);
-    console.log("incomers", incomers);
-    console.log("outgoers", outgoers);
+
     const effectiveOperands = incomers.length + outgoers.length;
 
     if (effectiveOperands < 2) {
       return {
         isValid: false,
         reason: `Operator ${operator.id} has fewer than 2 effective operands`,
+        errorNodeId: operator.id,
       };
     }
   }
@@ -1530,6 +1450,7 @@ interface Group {
   nodes: Node[];
   isValid: boolean;
   reason?: string;
+  errorNodeId?: string; // The actual problematic node ID
 }
 
 // Get validation summary for UI display

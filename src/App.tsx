@@ -91,13 +91,22 @@ const App: React.FC = () => {
     (error: ValidationError) => {
       console.log("Error clicked:", error);
 
-      if (error.nodeId && reactFlowInstance) {
+      if (reactFlowInstance) {
+        // Priority order: errorNodeId > nodeId > ruleGroupId
+        const targetNodeId =
+          error.errorNodeId || error.nodeId || error.ruleGroupId;
+
+        if (!targetNodeId) {
+          console.warn("No target node ID found in error");
+          return;
+        }
+
         // Set the highlighted node
-        setHighlightedErrorNodeId(error.nodeId);
+        setHighlightedErrorNodeId(targetNodeId);
 
         // Use React Flow's native method to fit view to specific node
         reactFlowInstance.fitView({
-          nodes: [{ id: error.nodeId }],
+          nodes: [{ id: targetNodeId }],
           duration: 800,
           padding: 0.2,
           minZoom: 0.5,

@@ -33,39 +33,6 @@ export const useValidation = (nodes: Node[], edges: Edge[]) => {
     isValidationInProgress: false,
   });
 
-  // Validate all rule groups
-  // const validateAll = useCallback(async () => {
-  //   setValidationState((prev) => ({ ...prev, isValidationInProgress: true }));
-
-  //   try {
-  //     const result = validateAllRuleGroups(nodes, edges);
-  //     const summary = getValidationSummary(result);
-
-  //     setValidationState({
-  //       isValid: result.isValid,
-  //       errors: result.errors,
-  //       warnings: result.warnings,
-  //       summary,
-  //       isValidationInProgress: false,
-  //     });
-  //   } catch (error) {
-  //     setValidationState({
-  //       isValid: false,
-  //       errors: [
-  //         {
-  //           type: "invalid_connection",
-  //           message: `Validation failed: ${
-  //             error instanceof Error ? error.message : "Unknown error"
-  //           }`,
-  //         },
-  //       ],
-  //       warnings: [],
-  //       summary: "Validation failed",
-  //       isValidationInProgress: false,
-  //     });
-  //   }
-  // }, [nodes, edges]);
-
   // Comprehensive validation using all new validation functions
   const validateAllComprehensive = useCallback(async () => {
     setValidationState((prev) => ({ ...prev, isValidationInProgress: true }));

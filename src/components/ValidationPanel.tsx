@@ -63,7 +63,16 @@ const ValidationPanel: React.FC<ValidationPanelProps> = ({
     }
   };
 
-  const getErrorColor = (type: ValidationError["type"]) => {
+  const getErrorColor = (
+    type: ValidationError["type"]
+  ):
+    | "error"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "info"
+    | "warning"
+    | "default" => {
     switch (type) {
       case "cycle":
         return "error";
