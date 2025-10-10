@@ -32,6 +32,7 @@ import {
   addNode,
   createConditionNode,
   createOperatorNode,
+  handleDeleteRestrictionRule,
 } from "./services/nodeManager";
 import {
   saveWorkflow,
@@ -208,11 +209,17 @@ const App: React.FC = () => {
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       setNodes((nds) => {
-        // Apply React Flow changes
-        let updatedNodes = applyNodeChanges(changes, nds);
+        // Get additional changes from delete restriction rule
+        const additionalChanges = handleDeleteRestrictionRule(changes, nds);
+
+        // Combine original changes with additional changes
+        const allChanges = [...changes, ...additionalChanges];
+
+        // Apply all changes using React Flow native method
+        const updatedNodes = applyNodeChanges(allChanges, nds);
 
         // Clear selectedGroupId if the selected group was deleted
-        const deletedNodeIds = changes
+        const deletedNodeIds = allChanges
           .filter((change) => change.type === "remove")
           .map((change) => change.id);
 

@@ -20,6 +20,7 @@ export interface ValidationError {
     | "rule_group_no_handles"
     | "rule_group_zero_conditions"
     // Action Group Node Restrictions
+    | "action_group_nested"
     | "action_group_zero_conditions"
     | "action_group_external_connection"
     | "action_group_connection"
@@ -803,6 +804,23 @@ export const validateActionGroups = (
     );
 
     for (const actionGroup of actionGroups) {
+      // Rule 0: No nested Action Groups (Action Group within another Action Group not allowed)
+      const nestedActionGroups = nodes.filter(
+        (node) =>
+          node.type === "resizableGroup" &&
+          node.parentId === actionGroup.id &&
+          node.data?.label === "Action Group"
+      );
+
+      if (nestedActionGroups.length > 0) {
+        errors.push({
+          type: "action_group_nested",
+          message: "Action Group within another Action Group is not allowed.",
+          nodeId: actionGroup.id,
+          actionGroupId: actionGroup.id,
+        });
+      }
+
       // Rule 1: Must have one or more Condition Nodes (zero not allowed)
       const conditionNodes = nodes.filter(
         (node) => node.type === "condition" && node.parentId === actionGroup.id

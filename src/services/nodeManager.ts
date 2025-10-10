@@ -232,6 +232,16 @@ export const createActionGroup = (
   setSelectedGroupId: (id: string | null) => void,
   existingNodes: Node[] = []
 ): Node[] => {
+  // Validate: Action Group within Action Group is not allowed
+  if (selectedGroupId) {
+    const parentNode = existingNodes.find(
+      (node) => node.id === selectedGroupId
+    );
+    if (parentNode && parentNode.data?.label === "Action Group") {
+      alert("Action Group within another Action Group is not allowed.");
+      return [];
+    }
+  }
   const actionGroupId = `resizableActionGroup-${
     nodeCounter.resizableGroup + 1
   }`;
@@ -450,4 +460,86 @@ export const addNode = (
 
   setNodes((nds) => [...nds, ...newNodes]);
   return newNodes;
+};
+
+/**
+ * Handle delete restriction rule using React Flow native methods
+ * Returns additional changes to be applied when Rule Name or Action Name nodes are deleted
+ */
+export const handleDeleteRestrictionRule = (
+  changes: any[],
+  nodes: Node[]
+): any[] => {
+  const additionalChanges: any[] = [];
+
+  // Find nodes that are being deleted and check if they are Rule Name or Action Name nodes
+  const deletedNodeIds = changes
+    .filter((change) => change.type === "remove")
+    .map((change) => change.id);
+
+  // Find Rule Name nodes being deleted
+  const deletedRuleNameNodes = deletedNodeIds.filter((nodeId) => {
+    const node = nodes.find((n) => n.id === nodeId);
+    return node && node.type === "ruleName";
+  });
+
+  // Find Action Name nodes being deleted
+  const deletedActionNameNodes = deletedNodeIds.filter((nodeId) => {
+    const node = nodes.find((n) => n.id === nodeId);
+    return node && node.type === "actionName";
+  });
+
+  // Add changes to delete entire Rule Groups when Rule Name nodes are deleted
+  deletedRuleNameNodes.forEach((ruleNameNodeId) => {
+    const ruleNameNode = nodes.find((n) => n.id === ruleNameNodeId);
+    if (ruleNameNode && ruleNameNode.parentId) {
+      const parentGroupId = ruleNameNode.parentId;
+
+      // Find all child nodes of the parent group
+      const childNodes = nodes.filter(
+        (node) => node.parentId === parentGroupId
+      );
+
+      // Add remove changes for parent group and all its children
+      additionalChanges.push({
+        type: "remove",
+        id: parentGroupId,
+      });
+
+      childNodes.forEach((childNode) => {
+        additionalChanges.push({
+          type: "remove",
+          id: childNode.id,
+        });
+      });
+    }
+  });
+
+  // Add changes to delete entire Action Groups when Action Name nodes are deleted
+  deletedActionNameNodes.forEach((actionNameNodeId) => {
+    const actionNameNode = nodes.find((n) => n.id === actionNameNodeId);
+    if (actionNameNode && actionNameNode.parentId) {
+      const parentGroupId = actionNameNode.parentId;
+
+      // Find all child nodes of the parent group
+      const childNodes = nodes.filter(
+        (node) => node.parentId === parentGroupId
+      );
+
+      // Add remove changes for parent group and all its children
+      additionalChanges.push({
+        type: "remove",
+        id: parentGroupId,
+      });
+
+      childNodes.forEach((childNode) => {
+        additionalChanges.push({
+          type: "remove",
+          id: childNode.id,
+        });
+      });
+    }
+  });
+
+  return additionalChanges;
 };
