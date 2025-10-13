@@ -7,10 +7,12 @@
 3. [Sidebar Controls](#sidebar-controls)
 4. [Node Types](#node-types)
 5. [Validation System](#validation-system)
-6. [Minimap & Flow Controls](#minimap--flow-controls)
-7. [JSON Generation & Export](#json-generation--export)
-8. [Step-by-Step Workflow Guide](#step-by-step-workflow-guide)
-9. [Troubleshooting](#troubleshooting)
+6. [Complex Grouping Logic](#complex-grouping-logic)
+7. [Connection Rules & Restrictions](#connection-rules--restrictions)
+8. [Minimap & Flow Controls](#minimap--flow-controls)
+9. [JSON Generation & Export](#json-generation--export)
+10. [Step-by-Step Workflow Guide](#step-by-step-workflow-guide)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -24,8 +26,10 @@ The React Flow Rule Engine is a visual, drag-and-drop tool for creating complex 
 - **Real-time Validation**: Instant feedback on rule configuration errors
 - **Multiple Node Types**: Specialized nodes for different rule components
 - **JSON Export**: Generate structured JSON for backend integration
-- **Group Management**: Organize rules into logical groups
+- **Group Management**: Organize rules into logical groups with complex grouping logic
 - **Minimap Navigation**: Easy navigation of large rule flows
+- **Advanced Validation**: Comprehensive validation system with detailed error reporting
+- **Complex Grouping Logic**: Support for sophisticated condition grouping with operators
 
 ---
 

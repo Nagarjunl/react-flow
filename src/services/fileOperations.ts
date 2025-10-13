@@ -5,6 +5,7 @@
 
 import type { ReactFlowInstance } from "@xyflow/react";
 import { generateRuleEngineJson } from "./jsonGenerator";
+import type { RuleType } from "../Api/rulesApi";
 
 /**
  * Downloads a file with the given content and filename
@@ -207,5 +208,42 @@ export const generateFlowJson = (
     onSuccess(jsonString);
   } catch (error) {
     onError(error as Error);
+  }
+};
+
+/**
+ * Prepares workflow data for API save
+ */
+export const prepareWorkflowForApi = (
+  reactFlowInstance: ReactFlowInstance | null,
+  nodes: any[],
+  edges: any[],
+  workflowName: string,
+  description: string = ""
+): RuleType | null => {
+  if (!reactFlowInstance) {
+    return null;
+  }
+
+  try {
+    // 1. Generate Rule Engine JSON
+    const ruleJson = generateRuleEngineJson(nodes, edges);
+
+    // 2. Generate React Flow JSON using core method
+    const flowJson = reactFlowInstance.toObject();
+
+    // 3. Create API request data using RuleType interface
+    const apiData: RuleType = {
+      name: workflowName,
+      description: description,
+      ruleJson: JSON.stringify(ruleJson),
+      flowJson: JSON.stringify(flowJson),
+      isActive: true,
+    };
+
+    return apiData;
+  } catch (error) {
+    console.error("Error preparing workflow for API:", error);
+    return null;
   }
 };

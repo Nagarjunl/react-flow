@@ -48,6 +48,7 @@ interface SideBarProps {
   onGenerateJson: () => void;
   onLoadFromJson: () => void;
   onSaveFlow: () => void;
+  onSaveToApi: () => void;
   onViewFlowJson: () => void;
 }
 
@@ -62,6 +63,7 @@ const SideBar: React.FC<SideBarProps> = ({
   onGenerateJson,
   onLoadFromJson,
   onSaveFlow,
+  onSaveToApi,
   onViewFlowJson,
 }) => {
   const nodeTypes: NodeType[] = [
@@ -267,6 +269,28 @@ const SideBar: React.FC<SideBarProps> = ({
           >
             View Flow JSON
           </Button>
+
+          {/* Save to API Button */}
+          <Button
+            variant="contained"
+            startIcon={<SaveIcon />}
+            onClick={onSaveToApi}
+            sx={{
+              background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+              color: "white",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              textTransform: "none",
+              py: 1.5,
+              "&:hover": {
+                background: "linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)",
+                transform: "translateY(-1px)",
+                boxShadow: "0 4px 8px rgba(220, 38, 38, 0.3)",
+              },
+            }}
+          >
+            Save to API
+          </Button>
         </Box>
 
         <Typography
@@ -279,8 +303,8 @@ const SideBar: React.FC<SideBarProps> = ({
             fontSize: "0.6875rem",
           }}
         >
-          Save: ruleJson + flowJson | Generate: Show JSON | Load: Restore |
-          View: Flow JSON
+          Save: Download | Generate: Show JSON | Load: Restore | View: Flow JSON
+          | Save to API: Send to Server
         </Typography>
       </Paper>
 

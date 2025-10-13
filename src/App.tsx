@@ -26,6 +26,7 @@ import JsonDrawer from "./components/JsonDrawer";
 import ValidationPanel from "./components/ValidationPanel";
 import { Box, ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import { useValidation } from "./hooks/useValidation";
+import { useCreateRuleMutation } from "./Api/rulesApi";
 
 // Import services
 import {
@@ -38,6 +39,7 @@ import {
   saveWorkflow,
   loadWorkflow,
   generateFlowJson,
+  prepareWorkflowForApi,
 } from "./services/fileOperations";
 import {
   generateRuleEngineJsonString,
@@ -85,6 +87,9 @@ const App: React.FC = () => {
   // Validation hook
   const { validationState, validateConnection, hasNodeErrors, getNodeErrors } =
     useValidation(nodes, edges);
+
+  // API mutation hook for saving workflow
+  const [createRuleMutation] = useCreateRuleMutation();
 
   // Handle error click to highlight and focus on problematic node
   const handleErrorClick = useCallback(
@@ -324,6 +329,57 @@ const App: React.FC = () => {
     );
   }, [reactFlowInstance, nodes, edges]);
 
+  // Save to API - Sends workflow data to the API
+  const handleSaveToApi = useCallback(async () => {
+    try {
+      // Find the InitialNode to get the workflow name
+      const initialNode = nodes.find((node) => node.type === "initial");
+
+      if (!initialNode) {
+        alert("Please add an Initial Node first to set the workflow name.");
+        return;
+      }
+
+      const workflowName = initialNode.data?.workflowName;
+
+      if (
+        !workflowName ||
+        typeof workflowName !== "string" ||
+        !workflowName.trim()
+      ) {
+        alert("Please enter a workflow name in the Initial Node.");
+        return;
+      }
+
+      // Prepare workflow data
+      const workflowData = prepareWorkflowForApi(
+        reactFlowInstance,
+        nodes,
+        edges,
+        workflowName.trim(),
+        "" // Empty description since we're not using it
+      );
+
+      if (!workflowData) {
+        console.error("Failed to prepare workflow data");
+        alert("Failed to prepare workflow data. Please try again.");
+        return;
+      }
+
+      // Send to API
+      const result = await createRuleMutation({
+        data: workflowData,
+      }).unwrap();
+      console.log("Workflow saved successfully:", result);
+
+      // Success notification
+      alert("Workflow saved successfully to API!");
+    } catch (error) {
+      console.error("Failed to save workflow to API:", error);
+      alert("Failed to save workflow to API. Please try again.");
+    }
+  }, [reactFlowInstance, nodes, edges, createRuleMutation]);
+
   // Load from JSON - Restores complete workflow from file
   const handleLoadFromJson = useCallback(() => {
     loadWorkflow(
@@ -366,6 +422,7 @@ const App: React.FC = () => {
             onGenerateJson={handleGenerateJson}
             onLoadFromJson={handleLoadFromJson}
             onSaveFlow={handleSaveFlow}
+            onSaveToApi={handleSaveToApi}
             onViewFlowJson={handleViewFlowJson}
           />
 

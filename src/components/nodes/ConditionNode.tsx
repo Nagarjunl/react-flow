@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { nodeColors, expressionSymbols } from "../../types/nodeTypes";
-import { tableSchema } from "../../constants/constant";
-import { Box, Typography, TextField, Autocomplete, Alert } from "@mui/material";
+import { useGetRuleSchemaQuery } from "../../Api/rulesApi";
+import {
+  Box,
+  Typography,
+  TextField,
+  Autocomplete,
+  Alert,
+  CircularProgress,
+} from "@mui/material";
 import type { ConditionNodeProps } from "../../types/nodeTypes";
 import ValidationIndicator from "../ValidationIndicator";
 import { ValidationError } from "../../services/validationService";
@@ -27,19 +34,22 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
   >([]);
   const { updateNodeData } = useReactFlow();
 
+  // Fetch table schema from API
+  const { data: tableSchema, isLoading, error } = useGetRuleSchemaQuery();
+
   // Note: Validation indicators will be handled at the App level
   // This component will receive validation state through props if needed
 
   // Initialize available fields and expressions on first load
   useEffect(() => {
-    if (!isInitialized) {
+    if (!isInitialized && tableSchema && !isLoading) {
       if (selectedTable && tableSchema[selectedTable]) {
         setAvailableFields(tableSchema[selectedTable]);
 
         // If we have a selected field, set up expressions
         if (selectedField) {
           const field = tableSchema[selectedTable].find(
-            (f) => f.name === selectedField
+            (f: { name: string; type: string }) => f.name === selectedField
           );
           if (field) {
             setAvailableExpressions(expressionSymbols[field.type] || []);
@@ -48,11 +58,16 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
       }
       setIsInitialized(true);
     }
-  }, [selectedTable, selectedField, isInitialized]);
+  }, [selectedTable, selectedField, isInitialized, tableSchema, isLoading]);
 
   // Update available fields when table changes (only after initialization)
   useEffect(() => {
-    if (isInitialized && selectedTable && tableSchema[selectedTable]) {
+    if (
+      isInitialized &&
+      selectedTable &&
+      tableSchema &&
+      tableSchema[selectedTable]
+    ) {
       setAvailableFields(tableSchema[selectedTable]);
       // Only clear fields if this is a user-initiated change, not initial load
       if (data.selectedTable !== selectedTable) {
@@ -63,7 +78,7 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
     } else if (isInitialized) {
       setAvailableFields([]);
     }
-  }, [selectedTable, isInitialized, data.selectedTable]);
+  }, [selectedTable, isInitialized, data.selectedTable, tableSchema]);
 
   // Update available expressions when field changes (only after initialization)
   useEffect(() => {
@@ -154,25 +169,39 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
         🔍 Condition Node
       </Typography>
 
-      {/* 2x2 Grid Layout using MUI Grid */}
-      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
+      {/* 2x2 Grid Layout */}
+
+      <Box sx={{ display: "flex", pb: 1, gap: 1 }}>
         {/* Table Selection */}
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <Autocomplete
             size="small"
-            options={Object.keys(tableSchema)}
+            options={tableSchema ? Object.keys(tableSchema) : []}
             value={selectedTable}
-            onChange={(event, newValue) => {
+            onChange={(_event, newValue) => {
               setSelectedTable(newValue || "");
             }}
+            loading={isLoading}
+            disabled={isLoading || !!error}
             renderInput={(params) => (
               <TextField
                 {...params}
                 label="Table *"
                 variant="outlined"
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {isLoading ? (
+                        <CircularProgress color="inherit" size={20} />
+                      ) : null}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
+                    backgroundColor: isLoading || error ? "#f5f5f5" : "white",
                     fontSize: "0.75rem",
                     "& .MuiOutlinedInput-input": {
                       color: "#333",
@@ -192,12 +221,12 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
         </Box>
 
         {/* Field Selection */}
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <Autocomplete
             size="small"
             options={availableFields.map((field) => field.name)}
             value={selectedField}
-            onChange={(event, newValue) => {
+            onChange={(_event, newValue) => {
               setSelectedField(newValue || "");
             }}
             disabled={!selectedTable}
@@ -226,9 +255,11 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
             )}
           />
         </Box>
+      </Box>
 
+      <Box sx={{ display: "flex", pb: 1, gap: 1 }}>
         {/* Expression Selection */}
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <Autocomplete
             size="small"
             options={availableExpressions}
@@ -237,7 +268,7 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
               availableExpressions.find((expr) => expr.value === expression) ||
               null
             }
-            onChange={(event, newValue) => {
+            onChange={(_event, newValue) => {
               setExpression(newValue ? newValue.value : "");
             }}
             disabled={!selectedField}
@@ -268,7 +299,7 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
         </Box>
 
         {/* Value Input */}
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <TextField
             size="small"
             type={getInputType()}
@@ -296,11 +327,25 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({
         </Box>
       </Box>
 
-      {!isValid && (
+      {error && (
         <Alert
           severity="error"
           sx={{
             mt: 1,
+            fontSize: "0.7rem",
+            "& .MuiAlert-message": {
+              fontSize: "0.7rem",
+            },
+          }}
+        >
+          Failed to load table schema. Please try again.
+        </Alert>
+      )}
+
+      {!isValid && !error && (
+        <Alert
+          severity="error"
+          sx={{
             fontSize: "0.7rem",
             "& .MuiAlert-message": {
               fontSize: "0.7rem",
