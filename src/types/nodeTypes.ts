@@ -88,6 +88,10 @@ export const expressionSymbols: Record<string, ExpressionSymbol[]> = {
     { value: ">", label: "Greater than" },
     { value: "<", label: "Less than" },
     { value: "!=", label: "Not equal to" },
+    { value: "+", label: "Addition" },
+    { value: "-", label: "Subtraction" },
+    { value: "*", label: "Multiplication" },
+    { value: "/", label: "Division" },
   ],
   integer: [
     { value: ">=", label: "Greater than or equal" },
@@ -96,6 +100,10 @@ export const expressionSymbols: Record<string, ExpressionSymbol[]> = {
     { value: ">", label: "Greater than" },
     { value: "<", label: "Less than" },
     { value: "!=", label: "Not equal to" },
+    { value: "+", label: "Addition" },
+    { value: "-", label: "Subtraction" },
+    { value: "*", label: "Multiplication" },
+    { value: "/", label: "Division" },
   ],
   varchar: [
     { value: "contains", label: "Contains" },
