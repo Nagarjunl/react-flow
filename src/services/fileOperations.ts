@@ -217,15 +217,23 @@ export const generateFlowJson = (
 export const prepareWorkflowForApi = (
   reactFlowInstance: ReactFlowInstance | null,
   nodes: any[],
-  edges: any[],
-  workflowName: string,
-  description: string = ""
+  edges: any[]
 ): RuleType | null => {
   if (!reactFlowInstance) {
     return null;
   }
 
   try {
+    // Find the initial node to get workflow name and description
+    const initialNode = nodes.find((node) => node.type === "initial");
+    if (!initialNode) {
+      console.error("No Initial Node found");
+      return null;
+    }
+
+    const workflowName = initialNode.data?.workflowName || "UnnamedWorkflow";
+    const description = initialNode.data?.description || "";
+
     // 1. Generate Rule Engine JSON
     const ruleJson = generateRuleEngineJson(nodes, edges);
 

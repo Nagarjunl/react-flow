@@ -12,6 +12,7 @@ const InitialNode: React.FC<InitialNodeProps> = ({
   id,
 }) => {
   const [workflowName, setWorkflowName] = useState(data.workflowName || "");
+  const [description, setDescription] = useState(data.description || "");
   const [isValid, setIsValid] = useState(true);
   const { updateNodeData } = useReactFlow();
 
@@ -25,10 +26,26 @@ const InitialNode: React.FC<InitialNodeProps> = ({
       // Update the node data using React Flow's recommended approach
       updateNodeData(id, {
         workflowName: value,
+        description: description,
         isValid: valid,
       });
     },
-    [id, updateNodeData]
+    [id, updateNodeData, description]
+  );
+
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setDescription(value);
+
+      // Update the node data using React Flow's recommended approach
+      updateNodeData(id, {
+        workflowName: workflowName,
+        description: value,
+        isValid: isValid,
+      });
+    },
+    [id, updateNodeData, workflowName, isValid]
   );
 
   return (
@@ -63,6 +80,31 @@ const InitialNode: React.FC<InitialNodeProps> = ({
         label="Workflow Name *"
         variant="outlined"
         fullWidth
+        sx={{
+          mb: 1,
+          "& .MuiOutlinedInput-root": {
+            backgroundColor: "white",
+            fontSize: "0.75rem",
+            "& .MuiOutlinedInput-input": {
+              color: "#333",
+            },
+          },
+          "& .MuiInputLabel-root": {
+            fontSize: "0.75rem",
+            color: "#666",
+          },
+        }}
+      />
+      <TextField
+        size="small"
+        value={description}
+        onChange={handleDescriptionChange}
+        placeholder="Enter workflow description (optional)"
+        label="Description"
+        variant="outlined"
+        fullWidth
+        multiline
+        rows={2}
         sx={{
           mb: 1,
           "& .MuiOutlinedInput-root": {

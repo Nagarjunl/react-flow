@@ -355,9 +355,7 @@ const App: React.FC = () => {
       const workflowData = prepareWorkflowForApi(
         reactFlowInstance,
         nodes,
-        edges,
-        workflowName.trim(),
-        "" // Empty description since we're not using it
+        edges
       );
 
       if (!workflowData) {

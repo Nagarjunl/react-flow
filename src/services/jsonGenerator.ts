@@ -14,6 +14,7 @@ export const generateRuleEngineJson = (nodes: any[], edges: any[]): any => {
     }
 
     const workflowName = initialNode.data?.workflowName || "UnnamedWorkflow";
+    const description = initialNode.data?.description || "";
     if (!workflowName || workflowName.trim() === "") {
       throw new Error("Workflow Name is required in Initial Node.");
     }
@@ -42,6 +43,7 @@ export const generateRuleEngineJson = (nodes: any[], edges: any[]): any => {
 
     return {
       WorkflowName: workflowName,
+      Description: description,
       Rules: rules,
     };
   } catch (error) {
