@@ -1,4 +1,4 @@
-import dagre from "dagre";
+import dagre from "@dagrejs/dagre";
 import { Node, Edge, XYPosition, ReactFlowInstance } from "@xyflow/react";
 
 export interface LayoutedElements {
