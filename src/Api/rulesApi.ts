@@ -14,7 +14,8 @@ export interface RuleType {
 }
 
 export interface RuleSchemaType {
-  [key: string]: any;
+  name?: string;
+  type?: string;
 }
 
 export interface CommissionType {
@@ -22,6 +23,11 @@ export interface CommissionType {
   name?: string;
   value?: number;
   [key: string]: any;
+}
+
+export interface CountryType {
+  code?: string;
+  name?: string;
 }
 
 export interface ProcessRequestType {
@@ -118,6 +124,15 @@ export const rulesApi = createApi({
       }),
       invalidatesTags: ["Rules"],
     }),
+
+    // Get countries
+    getCountries: builder.query<CountryType[], { params?: QueryParamsType }>({
+      query: (args) => ({
+        method: "GET",
+        url: "/Common/GetCountries",
+        params: args?.params,
+      }),
+    }),
   }),
 });
 
@@ -130,4 +145,5 @@ export const {
   useGetRuleSchemaQuery,
   useGetCommissionsQuery,
   useProcessRuleMutation,
+  useGetCountriesQuery,
 } = rulesApi;
