@@ -92,6 +92,7 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
       id: `action_${Date.now()}`,
       actionType: "",
       actionName: "",
+      expression: "",
     };
 
     setState((prev) => ({
@@ -155,6 +156,7 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
         actions: rule.actionGroups.map((action) => ({
           actionType: action.actionType,
           actionName: action.actionName,
+          expression: action.expression || "",
         })),
       })),
     };

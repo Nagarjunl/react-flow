@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import {
   Paper,
   Box,
@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { Delete as DeleteIcon } from "@mui/icons-material";
 import { actionTypes } from "../../../types/nodeTypes";
+import ActionExpressionBuilder from "./ActionExpressionBuilder";
 import type { ActionGroup } from "../types";
 
 interface ActionGroupComponentProps {
@@ -30,6 +31,18 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
   onUpdate,
   onDelete,
 }) => {
+  const [expressionValue, setExpressionValue] = useState(
+    actionGroup.expression || ""
+  );
+
+  const handleExpressionChange = useCallback(
+    (value: string) => {
+      setExpressionValue(value);
+      onUpdate(ruleId, actionGroup.id, { expression: value });
+    },
+    [ruleId, actionGroup.id, onUpdate]
+  );
+
   return (
     <Paper key={actionGroup.id} sx={{ p: 2 }}>
       <Box
@@ -37,7 +50,7 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
           display: "flex",
           alignItems: "center",
           gap: 1,
-          mb: 1,
+          mb: 2,
         }}
       >
         <Typography variant="subtitle2" sx={{ minWidth: 100 }}>
@@ -54,7 +67,8 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
         </Tooltip>
       </Box>
 
-      <Stack spacing={2}>
+      {/* Single Row Layout for Action Type and Action Name */}
+      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         {/* Action Type Autocomplete */}
         <Autocomplete
           size="small"
@@ -69,6 +83,7 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
               actionType: newValue ? newValue.value : "",
             })
           }
+          sx={{ flex: 1 }}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -105,9 +120,8 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
             })
           }
           size="small"
-          fullWidth
-          placeholder="Enter action name..."
           sx={{
+            flex: 1,
             "& .MuiOutlinedInput-root": {
               backgroundColor: "white",
               fontSize: "0.75rem",
@@ -120,8 +134,19 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
               color: "#666",
             },
           }}
+          placeholder="Enter action name..."
         />
       </Stack>
+
+      {/* Action Expression Builder */}
+      <Box sx={{ mt: 2 }}>
+        <ActionExpressionBuilder
+          value={expressionValue}
+          onChange={handleExpressionChange}
+          label="Action Expression"
+          placeholder="Build action expression (e.g., sale.Amount * 0.03 + 200)"
+        />
+      </Box>
     </Paper>
   );
 };

@@ -9,6 +9,7 @@ export interface ActionGroup {
   id: string;
   actionType: string;
   actionName: string;
+  expression?: string;
 }
 
 export interface RuleGroup {
@@ -58,6 +59,7 @@ export interface GeneratedWorkflow {
     actions: Array<{
       actionType: string;
       actionName: string;
+      expression: string;
     }>;
   }>;
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Card,
@@ -13,6 +13,7 @@ import { Save as SaveIcon, PlayArrow as PlayIcon } from "@mui/icons-material";
 import { useRuleBuilder } from "../hooks/useRuleBuilder";
 import WorkflowSidebar from "../components/WorkflowSidebar";
 import RuleGroupComponent from "../components/RuleGroupComponent";
+import JsonDrawer from "../../../components/JsonDrawer";
 import type { RuleBuilderProps } from "../types";
 
 const RuleBuilder: React.FC<RuleBuilderProps> = ({
@@ -21,6 +22,8 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({
   initialWorkflow,
 }) => {
   const { state, actions } = useRuleBuilder(initialWorkflow);
+  const [isJsonDrawerOpen, setIsJsonDrawerOpen] = useState(false);
+  const [generatedJson, setGeneratedJson] = useState("");
 
   const handleSave = () => {
     const workflow = actions.generateWorkflow();
@@ -31,6 +34,17 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({
     const workflow = actions.generateWorkflow();
     onWorkflowTest?.(workflow);
     actions.testWorkflow();
+  };
+
+  const handleGenerateJson = () => {
+    const workflow = actions.generateWorkflow();
+    const jsonString = JSON.stringify(workflow, null, 2);
+    setGeneratedJson(jsonString);
+    setIsJsonDrawerOpen(true);
+  };
+
+  const handleCloseJsonDrawer = () => {
+    setIsJsonDrawerOpen(false);
   };
 
   return (
@@ -65,6 +79,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({
           validationErrors={state.validationErrors}
           onWorkflowChange={actions.updateWorkflowData}
           onAddRule={actions.addRuleGroup}
+          onGenerateJson={handleGenerateJson}
         />
 
         {/* Right Content - Rule Groups */}
@@ -106,6 +121,13 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({
           )}
         </Box>
       </Box>
+
+      {/* JSON Drawer */}
+      <JsonDrawer
+        isOpen={isJsonDrawerOpen}
+        onClose={handleCloseJsonDrawer}
+        jsonData={generatedJson}
+      />
     </Box>
   );
 };
