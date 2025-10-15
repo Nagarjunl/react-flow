@@ -29,7 +29,7 @@ function ruleExpressionCompletions(
   if (!word || (word.from === word.to && !context.explicit)) return null;
 
   const beforeCursor = context.state.sliceDoc(
-    Math.max(0, context.pos - 20),
+    Math.max(0, context.pos - 100),
     context.pos
   );
 
@@ -40,6 +40,21 @@ function ruleExpressionCompletions(
     const afterDotMatch = context.matchBefore(/\w*$/);
     if (afterDotMatch) {
       word = afterDotMatch;
+    }
+  }
+
+  // Special case: after method chaining like .where(...).
+  const afterMethodChainCheck = beforeCursor.match(/\([^)]*\)\.$/);
+  if (afterMethodChainCheck) {
+    // We're after a closing paren and dot, match text after the dot
+    const afterChainMatch = context.matchBefore(/\w*$/);
+    if (afterChainMatch) {
+      word = afterChainMatch;
+      console.log("🔧 Adjusted word after method chain:", {
+        text: word.text,
+        from: word.from,
+        to: word.to,
+      });
     }
   }
 
@@ -97,65 +112,180 @@ function ruleExpressionCompletions(
     { label: ":", type: "operator", info: "Ternary separator" },
   ];
 
-  // Functions
-  const functions = [
+  // Math Functions
+  const mathFunctions = [
+    {
+      label: "Math.max",
+      type: "function",
+      detail: "(a, b)",
+      info: "Math.max(a, b) → Maximum of two values",
+      apply: "Math.max(",
+    },
+    {
+      label: "Math.min",
+      type: "function",
+      detail: "(a, b)",
+      info: "Math.min(a, b) → Minimum of two values",
+      apply: "Math.min(",
+    },
+    {
+      label: "Math.abs",
+      type: "function",
+      detail: "(value)",
+      info: "Math.abs(value) → Absolute value",
+      apply: "Math.abs(",
+    },
+    {
+      label: "Math.round",
+      type: "function",
+      detail: "(value)",
+      info: "Math.round(value) → Round to nearest integer",
+      apply: "Math.round(",
+    },
+    {
+      label: "Math.floor",
+      type: "function",
+      detail: "(value)",
+      info: "Math.floor(value) → Round down",
+      apply: "Math.floor(",
+    },
+    {
+      label: "Math.ceil",
+      type: "function",
+      detail: "(value)",
+      info: "Math.ceil(value) → Round up",
+      apply: "Math.ceil(",
+    },
+    {
+      label: "Math.pow",
+      type: "function",
+      detail: "(base, exp)",
+      info: "Math.pow(base, exponent) → Power/exponent",
+      apply: "Math.pow(",
+    },
+    {
+      label: "Math.sqrt",
+      type: "function",
+      detail: "(value)",
+      info: "Math.sqrt(value) → Square root",
+      apply: "Math.sqrt(",
+    },
+  ];
+
+  // Date/Time Functions
+  const dateFunctions = [
+    {
+      label: "DateDiff",
+      type: "function",
+      detail: "('unit', start, end)",
+      info: "DateDiff('day', startDate, endDate) → Calculate date difference",
+      apply: "DateDiff('day', ",
+    },
+    {
+      label: "Now",
+      type: "function",
+      detail: "()",
+      info: "Now() → Current date and time",
+      apply: "Now()",
+    },
+    {
+      label: "Today",
+      type: "function",
+      detail: "()",
+      info: "Today() → Current date",
+      apply: "Today()",
+    },
+    {
+      label: "AddDays",
+      type: "function",
+      detail: "(date, days)",
+      info: "AddDays(date, days) → Add days to date",
+      apply: "AddDays(",
+    },
+    {
+      label: "AddMonths",
+      type: "function",
+      detail: "(date, months)",
+      info: "AddMonths(date, months) → Add months to date",
+      apply: "AddMonths(",
+    },
+  ];
+
+  // Collection Methods
+  const collectionMethods = [
+    {
+      label: "where",
+      type: "function",
+      detail: "(x => condition)",
+      info: "where(x => x.field == value) → Filter collection",
+      apply: "where(x => ",
+    },
     {
       label: "sum",
       type: "function",
-      detail: "(collection)",
-      info: "sum(collection) → Sum all values",
-      apply: "sum()",
+      detail: "(x => x.field)",
+      info: "sum(x => x.field) → Sum values",
+      apply: "sum(x => ",
     },
     {
       label: "average",
       type: "function",
-      detail: "(collection)",
-      info: "average(collection) → Average of values",
-      apply: "average()",
+      detail: "(x => x.field)",
+      info: "average(x => x.field) → Average of values",
+      apply: "average(x => ",
     },
     {
       label: "count",
       type: "function",
-      detail: "(collection)",
-      info: "count(collection) → Count items",
+      detail: "()",
+      info: "count() → Count items",
       apply: "count()",
-    },
-    {
-      label: "min",
-      type: "function",
-      detail: "(a, b)",
-      info: "min(a, b) → Minimum value",
-      apply: "min()",
-    },
-    {
-      label: "max",
-      type: "function",
-      detail: "(a, b)",
-      info: "max(a, b) → Maximum value",
-      apply: "max()",
-    },
-    {
-      label: "where",
-      type: "function",
-      detail: "(collection, condition)",
-      info: "where(collection, expr) → Filter collection",
-      apply: "where()",
     },
     {
       label: "any",
       type: "function",
-      detail: "(collection, condition)",
-      info: "any(collection, expr) → Check if any match",
-      apply: "any()",
+      detail: "(x => condition)",
+      info: "any(x => x.field == value) → Check if any match",
+      apply: "any(x => ",
     },
     {
       label: "all",
       type: "function",
-      detail: "(collection, condition)",
-      info: "all(collection, expr) → Check if all match",
-      apply: "all()",
+      detail: "(x => condition)",
+      info: "all(x => x.field == value) → Check if all match",
+      apply: "all(x => ",
+    },
+    {
+      label: "first",
+      type: "function",
+      detail: "(x => condition)",
+      info: "first(x => x.field == value) → Get first matching item",
+      apply: "first(x => ",
+    },
+    {
+      label: "last",
+      type: "function",
+      detail: "(x => condition)",
+      info: "last(x => x.field == value) → Get last matching item",
+      apply: "last(x => ",
+    },
+    {
+      label: "max",
+      type: "function",
+      detail: "(x => x.field)",
+      info: "max(x => x.field) → Maximum value",
+      apply: "max(x => ",
+    },
+    {
+      label: "min",
+      type: "function",
+      detail: "(x => x.field)",
+      info: "min(x => x.field) → Minimum value",
+      apply: "min(x => ",
     },
   ];
+
+  const functions = [...mathFunctions, ...dateFunctions, ...collectionMethods];
 
   // Constants - include countries from API
   const constants = [
@@ -172,33 +302,362 @@ function ruleExpressionCompletions(
     })),
   ];
 
+  // Helper: Get field type from schema
+  const getFieldType = (
+    tableName: string,
+    fieldName: string
+  ): string | null => {
+    const table = activeSchema[tableName];
+    if (!table) return null;
+    const field = table.find((f: any) => f.name === fieldName);
+    return field ? field.type : null;
+  };
+
+  // Helper: Normalize collection name to table name
+  const normalizeTableName = (name: string): string => {
+    console.log(
+      "🔧 Normalizing table name:",
+      name,
+      "Available tables:",
+      Object.keys(activeSchema)
+    );
+
+    // Try exact match first (case-sensitive)
+    if (activeSchema[name]) {
+      console.log("✅ Exact match:", name);
+      return name;
+    }
+
+    // Try case-insensitive match
+    const lowerName = name.toLowerCase();
+    const caseInsensitiveMatch = Object.keys(activeSchema).find(
+      (key) => key.toLowerCase() === lowerName
+    );
+    if (caseInsensitiveMatch) {
+      console.log("✅ Case-insensitive match:", caseInsensitiveMatch);
+      return caseInsensitiveMatch;
+    }
+
+    // Try removing 'all' prefix: allSales -> sales, sale, or Sales
+    if (name.startsWith("all") || name.startsWith("All")) {
+      const withoutAll = name.substring(3); // "allAttendance" -> "Attendance"
+
+      // Try exact match without 'all'
+      if (activeSchema[withoutAll]) {
+        console.log("✅ Without 'all' prefix:", withoutAll);
+        return withoutAll;
+      }
+
+      // Try lowercase first letter: "Attendance" -> "attendance"
+      const lowerFirst =
+        withoutAll.charAt(0).toLowerCase() + withoutAll.slice(1);
+      if (activeSchema[lowerFirst]) {
+        console.log("✅ Lowercase first letter:", lowerFirst);
+        return lowerFirst;
+      }
+
+      // Try case-insensitive without 'all'
+      const caseInsensitiveWithoutAll = Object.keys(activeSchema).find(
+        (key) => key.toLowerCase() === withoutAll.toLowerCase()
+      );
+      if (caseInsensitiveWithoutAll) {
+        console.log(
+          "✅ Case-insensitive without 'all':",
+          caseInsensitiveWithoutAll
+        );
+        return caseInsensitiveWithoutAll;
+      }
+    }
+
+    console.log("❌ No match found for:", name);
+    return name;
+  };
+
+  // Date properties
+  const dateProperties = [
+    {
+      label: "Year",
+      type: "property",
+      detail: "(int)",
+      info: "Year component of date",
+    },
+    {
+      label: "Month",
+      type: "property",
+      detail: "(int)",
+      info: "Month component (1-12)",
+    },
+    { label: "Day", type: "property", detail: "(int)", info: "Day component" },
+    {
+      label: "DayOfWeek",
+      type: "property",
+      detail: "(int)",
+      info: "Day of week (0=Sunday, 6=Saturday)",
+    },
+    {
+      label: "Hour",
+      type: "property",
+      detail: "(int)",
+      info: "Hour component (0-23)",
+    },
+    {
+      label: "Minute",
+      type: "property",
+      detail: "(int)",
+      info: "Minute component",
+    },
+    {
+      label: "Second",
+      type: "property",
+      detail: "(int)",
+      info: "Second component",
+    },
+  ];
+
+  // String properties
+  const stringProperties = [
+    {
+      label: "Length",
+      type: "property",
+      detail: "(int)",
+      info: "String length",
+    },
+    {
+      label: "ToUpper",
+      type: "function",
+      detail: "()",
+      info: "Convert to uppercase",
+      apply: "ToUpper()",
+    },
+    {
+      label: "ToLower",
+      type: "function",
+      detail: "()",
+      info: "Convert to lowercase",
+      apply: "ToLower()",
+    },
+    {
+      label: "Contains",
+      type: "function",
+      detail: "('text')",
+      info: "Check if contains text",
+      apply: "Contains('')",
+    },
+    {
+      label: "StartsWith",
+      type: "function",
+      detail: "('text')",
+      info: "Check if starts with",
+      apply: "StartsWith('')",
+    },
+    {
+      label: "EndsWith",
+      type: "function",
+      detail: "('text')",
+      info: "Check if ends with",
+      apply: "EndsWith('')",
+    },
+    {
+      label: "Substring",
+      type: "function",
+      detail: "(start, len)",
+      info: "Extract substring",
+      apply: "Substring(",
+    },
+    {
+      label: "Trim",
+      type: "function",
+      detail: "()",
+      info: "Remove whitespace",
+      apply: "Trim()",
+    },
+  ];
+
   let options = [...tables, ...functions, ...operators, ...constants];
 
-  // Context-aware suggestions: If after '.', suggest properties
-  const dotMatch = beforeCursor.match(/(\w+)\.$/);
-  console.log("beforeCursor:", beforeCursor);
-  console.log("dotMatch:", dotMatch);
-  console.log("activeSchema keys:", Object.keys(activeSchema));
+  // Smart Context Detection
 
-  if (dotMatch) {
-    const tableName = dotMatch[1];
-    console.log("🔍 Dot detected! Table name:", tableName);
-    console.log("📊 Schema has this table?", tableName in activeSchema);
-    console.log("📋 Table fields:", activeSchema[tableName]);
+  // 1. Check for Math. context
+  if (beforeCursor.endsWith("Math.")) {
+    options = mathFunctions.map((f) => ({
+      ...f,
+      label: f.label.replace("Math.", ""), // Show just 'max' instead of 'Math.max'
+    }));
+  }
 
-    if (activeSchema[tableName]) {
-      // Filter properties for this specific table
+  // 2. Check for lambda parameter (e.g., allSales.where(s => s. anywhere inside the lambda)
+  // Strategy: Find the lambda parameter name, then check if we're typing that param followed by dot
+
+  // First, try to find if we're inside a lambda expression
+  // Pattern: collection.method( paramName => ... paramName.
+  const lambdaContextMatch = beforeCursor.match(
+    /(\w+)\.(where|sum|average|any|all|first|last|max|min)\s*\(\s*(\w+)\s*=>/
+  );
+
+  console.log("lambdaContextMatch", lambdaContextMatch);
+
+  let isInsideLambda = false;
+
+  if (lambdaContextMatch) {
+    const collectionName = lambdaContextMatch[1];
+    const methodName = lambdaContextMatch[2];
+    const paramName = lambdaContextMatch[3];
+
+    // Now check if we're currently typing that parameter followed by a dot
+    // e.g., "x." anywhere after "where(x =>"
+    // Use word boundary \b to ensure it's not part of another word (e.g., "rex.")
+    const paramDotPattern = new RegExp(`\\b${paramName}\\.\\s*$`);
+    const isTypingParam = paramDotPattern.test(beforeCursor);
+
+    console.log("🔍 Lambda context detection:", {
+      beforeCursor: beforeCursor.slice(-60),
+      collection: collectionName,
+      method: methodName,
+      param: paramName,
+      isTypingParam,
+      paramDotPattern: paramDotPattern.source,
+    });
+
+    if (isTypingParam) {
+      isInsideLambda = true;
+      const tableName = normalizeTableName(collectionName);
+
+      console.log("🎯 Lambda param detected!", {
+        collection: collectionName,
+        param: paramName,
+        tableName,
+        hasTable: !!activeSchema[tableName],
+      });
+
+      if (activeSchema[tableName]) {
+        options = activeSchema[tableName].map((field: any) => ({
+          label: field.name,
+          type: "property",
+          detail: `(${field.type})`,
+          info: `${paramName}.${field.name} - Type: ${field.type}`,
+        }));
+
+        console.log("✅ Lambda fields:", options.length, "fields");
+      } else {
+        console.log("❌ Table not found:", tableName);
+      }
+    }
+  }
+
+  // 3. Check for property chain (e.g., user.DateJoined. or x.CreatedOn.)
+  const propertyChainMatch = beforeCursor.match(/(\w+)\.(\w+)\.$/);
+  if (propertyChainMatch) {
+    let tableName = propertyChainMatch[1];
+    const fieldName = propertyChainMatch[2];
+
+    console.log("🔍 Property chain detection:", {
+      tableName,
+      fieldName,
+      isInsideLambda,
+    });
+
+    // If we're in a lambda context, check if tableName is the parameter
+    if (lambdaContextMatch) {
+      const paramName = lambdaContextMatch[3];
+      console.log("Lambda param check:", tableName, "===", paramName, "?");
+
+      if (tableName === paramName) {
+        // This is x.CreatedOn., so use the collection's table name
+        const collectionName = lambdaContextMatch[1];
+        tableName = normalizeTableName(collectionName);
+        console.log(
+          "🎯 Lambda property chain: param =",
+          paramName,
+          "→ table =",
+          tableName
+        );
+      }
+    }
+
+    const fieldType = getFieldType(tableName, fieldName);
+
+    console.log("Field type:", fieldType, "for", tableName + "." + fieldName);
+
+    if (fieldType === "date") {
+      options = dateProperties;
+      console.log("✅ Showing date properties");
+    } else if (fieldType === "varchar") {
+      options = stringProperties;
+      console.log("✅ Showing string properties");
+    }
+  }
+
+  // 4. Check for collection method chaining (e.g., allSales.where(...). or allSales.)
+  // Pattern 1: collection.method(...).  (method chaining)
+  const methodChainMatch = beforeCursor.match(
+    /(\w+)\.(where|sum|average|any|all|first|last|max|min)\([^)]*\)\.$/
+  );
+
+  if (methodChainMatch && !propertyChainMatch) {
+    const collectionName = methodChainMatch[1];
+    console.log("🔗 Method chaining detected:", collectionName);
+    console.log("Word info:", {
+      text: word.text,
+      from: word.from,
+      to: word.to,
+    });
+
+    // After a collection method, show collection methods (for chaining)
+    options = collectionMethods;
+    console.log(
+      "✅ Showing collection methods for chaining, options count:",
+      options.length
+    );
+  }
+  // Pattern 2: collection.  (initial collection access)
+  else {
+    const collectionDotMatch = beforeCursor.match(/(\w+)\.$/);
+    if (collectionDotMatch && !propertyChainMatch && !isInsideLambda) {
+      const name = collectionDotMatch[1];
+      // Check if this is a collection (starts with 'all' or is a known table)
+      if (name.startsWith("all") || activeSchema[name]) {
+        // Could be either table fields OR collection methods
+        // Show both
+        const tableName = normalizeTableName(name);
+        if (activeSchema[tableName]) {
+          const tableFields = activeSchema[tableName].map((field: any) => ({
+            label: field.name,
+            type: "property",
+            detail: `(${field.type})`,
+            info: `${name}.${field.name} - Type: ${field.type}`,
+          }));
+          options = [...collectionMethods, ...tableFields];
+        }
+      }
+    }
+  }
+
+  // 5. Standard table.field pattern (fallback if no other context matched)
+  const standardDotMatch = beforeCursor.match(/(\w+)\.$/);
+  if (
+    standardDotMatch &&
+    !isInsideLambda &&
+    !propertyChainMatch &&
+    !beforeCursor.endsWith("Math.")
+  ) {
+    const tableName = standardDotMatch[1];
+
+    console.log("🔍 Standard table detection:", {
+      tableName,
+      hasTable: !!activeSchema[tableName],
+      startsWithAll: tableName.startsWith("all"),
+    });
+
+    // Skip if already handled by collection method logic
+    if (!tableName.startsWith("all") && activeSchema[tableName]) {
       options = activeSchema[tableName].map((field: any) => ({
         label: field.name,
         type: "property",
         detail: `(${field.type})`,
         info: `${tableName}.${field.name} - Type: ${field.type}`,
       }));
-      console.log("✅ Generated options:", options);
-    } else {
-      // Table not found, show all properties as fallback
-      console.log("❌ Table not found in schema");
-      options = properties;
+
+      console.log("✅ Standard table fields:", options.length, "fields");
     }
   }
 
@@ -210,9 +669,12 @@ function ruleExpressionCompletions(
       context.explicit
   );
 
-  console.log("🎯 Final filtered options:", filteredOptions);
-  console.log("📝 Word.text:", word.text);
-  console.log("📍 Word.from:", word.from, "Word.to:", word.to);
+  console.log("📋 Final options:", {
+    totalOptions: options.length,
+    filteredOptions: filteredOptions.length,
+    wordText: word.text,
+    sampleOptions: filteredOptions.slice(0, 3).map((o) => o.label),
+  });
 
   return {
     from: word.from,
@@ -239,10 +701,7 @@ const RuleExpressionEditor: React.FC<RuleExpressionEditorProps> = ({
 
   // Transform API schema to the format we need
   const transformedSchema = useMemo(() => {
-    console.log("🔄 Schema Data from API:", schemaData);
-
     if (!schemaData) {
-      console.log("⚠️ No schema data, using fallback");
       return tableSchema; // Fallback to constant
     }
 
@@ -250,8 +709,6 @@ const RuleExpressionEditor: React.FC<RuleExpressionEditorProps> = ({
     if (typeof schemaData === "object" && !Array.isArray(schemaData)) {
       // Check if it has table-like structure
       const firstKey = Object.keys(schemaData)[0];
-      console.log("🔑 First key in schema:", firstKey);
-      console.log("📦 First key value:", (schemaData as any)[firstKey]);
 
       if (
         firstKey &&
@@ -259,13 +716,11 @@ const RuleExpressionEditor: React.FC<RuleExpressionEditorProps> = ({
         (schemaData as any)[firstKey][0]?.name
       ) {
         // Already in correct format - use API schema
-        console.log("✅ Using API schema, tables:", Object.keys(schemaData));
         return schemaData;
       }
     }
 
     // Otherwise use tableSchema constant as fallback
-    console.log("⚠️ Schema format not recognized, using fallback");
     return tableSchema;
   }, [schemaData]);
 
