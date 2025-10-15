@@ -28,6 +28,7 @@ export interface RuleBuilderState {
 export interface RuleBuilderProps {
   onWorkflowSave?: (workflow: any) => void;
   onWorkflowTest?: (workflow: any) => void;
+  onSaveToApi?: (workflow: any) => void;
   initialWorkflow?: Partial<RuleBuilderState>;
 }
 
@@ -95,17 +96,6 @@ export interface ConditionNodeData {
   fieldName?: string;
 }
 
-export interface ActionNodeData {
-  id: string;
-  actionType?: string;
-  actionName?: string;
-}
-
-export interface RuleNodeData {
-  id: string;
-  ruleName?: string;
-}
-
 export interface ValueNodeData {
   id: string;
   value?: string;
@@ -138,22 +128,6 @@ export interface ConditionNodeProps {
     id: string,
     updates: { tableName?: string; fieldName?: string }
   ) => void;
-}
-
-export interface ActionNodeProps {
-  id: string;
-  actionType?: string;
-  actionName?: string;
-  onUpdate: (
-    id: string,
-    updates: { actionType?: string; actionName?: string }
-  ) => void;
-}
-
-export interface RuleNodeProps {
-  id: string;
-  ruleName?: string;
-  onUpdate: (id: string, updates: { ruleName?: string }) => void;
 }
 
 export interface ValueNodeProps {

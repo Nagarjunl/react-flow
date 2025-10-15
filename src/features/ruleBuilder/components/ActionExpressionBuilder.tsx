@@ -16,24 +16,19 @@ import {
   PlayArrow as PlayIcon,
 } from "@mui/icons-material";
 import ConditionNode from "./nodes/ConditionNode";
-import ActionNode from "./nodes/ActionNode";
-import RuleNode from "./nodes/RuleNode";
 import ValueNode from "./nodes/ValueNode";
 import OperatorNode from "./nodes/OperatorNode";
 import FunctionNode from "./nodes/FunctionNode";
 import CollectionMethodNode from "./nodes/CollectionMethodNode";
-import { validateExpression } from "../utils/dataSourceUtils";
+import OperatorModal from "./OperatorModal";
+import {
+  validateExpression,
+  getOperatorsForType,
+} from "../utils/dataSourceUtils";
 
 interface ExpressionNode {
   id: string;
-  type:
-    | "condition"
-    | "action"
-    | "rule"
-    | "value"
-    | "operator"
-    | "function"
-    | "collectionMethod";
+  type: "condition" | "value" | "operator" | "function" | "collectionMethod";
   data: any;
 }
 
@@ -61,6 +56,7 @@ const ActionExpressionBuilder: React.FC<ActionExpressionBuilderProps> = ({
   const [expressionParts, setExpressionParts] = useState<ExpressionPart[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isOperatorModalOpen, setIsOperatorModalOpen] = useState(false);
 
   // Add new node
   const addNode = useCallback((type: ExpressionNode["type"]) => {
@@ -98,26 +94,6 @@ const ActionExpressionBuilder: React.FC<ActionExpressionBuilderProps> = ({
               type: "data",
               value: `${partData.tableName}.${partData.fieldName}`,
               label: `${partData.tableName}.${partData.fieldName}`,
-            };
-          } else return;
-          break;
-        case "action":
-          if (partData.actionName) {
-            newPart = {
-              id: `part_${Date.now()}`,
-              type: "value",
-              value: partData.actionName,
-              label: partData.actionName,
-            };
-          } else return;
-          break;
-        case "rule":
-          if (partData.ruleName) {
-            newPart = {
-              id: `part_${Date.now()}`,
-              type: "value",
-              value: partData.ruleName,
-              label: partData.ruleName,
             };
           } else return;
           break;
@@ -244,6 +220,29 @@ const ActionExpressionBuilder: React.FC<ActionExpressionBuilderProps> = ({
     setExpressionNodes((prev) => prev.filter((node) => node.id !== nodeId));
   }, []);
 
+  // Handle operator modal
+  const handleOpenOperatorModal = useCallback(() => {
+    setIsOperatorModalOpen(true);
+  }, []);
+
+  const handleCloseOperatorModal = useCallback(() => {
+    setIsOperatorModalOpen(false);
+  }, []);
+
+  const handleOperatorSelect = useCallback(
+    (operator: { value: string; label: string; description?: string }) => {
+      const newPart: ExpressionPart = {
+        id: `part_${Date.now()}`,
+        type: "operator",
+        value: operator.value,
+        label: operator.value,
+      };
+      setExpressionParts((prev) => [...prev, newPart]);
+      setIsOperatorModalOpen(false);
+    },
+    []
+  );
+
   // Generate expression from nodes
   const generateExpression = useCallback(() => {
     const expression = expressionNodes
@@ -253,10 +252,6 @@ const ActionExpressionBuilder: React.FC<ActionExpressionBuilderProps> = ({
             return node.data.tableName && node.data.fieldName
               ? `${node.data.tableName}.${node.data.fieldName}`
               : "";
-          case "action":
-            return node.data.actionName || "";
-          case "rule":
-            return node.data.ruleName || "";
           case "value":
             return node.data.value || "";
           case "operator":
@@ -301,25 +296,11 @@ const ActionExpressionBuilder: React.FC<ActionExpressionBuilderProps> = ({
             fieldName={node.data.fieldName}
           />
         );
-      case "action":
-        return (
-          <ActionNode
-            {...commonProps}
-            actionType={node.data.actionType}
-            actionName={node.data.actionName}
-          />
-        );
-      case "rule":
-        return <RuleNode {...commonProps} ruleName={node.data.ruleName} />;
       case "value":
         return <ValueNode {...commonProps} value={node.data.value} />;
       case "operator":
         return (
-          <OperatorNode
-            {...commonProps}
-            operator={node.data.operator}
-            fieldType={node.data.fieldType}
-          />
+          <OperatorNode {...commonProps} fieldType={node.data.fieldType} />
         );
       case "function":
         return (
@@ -366,7 +347,7 @@ const ActionExpressionBuilder: React.FC<ActionExpressionBuilderProps> = ({
             size="small"
             variant="outlined"
             startIcon={<AddIcon />}
-            onClick={() => addNode("operator")}
+            onClick={handleOpenOperatorModal}
           >
             Add Operator
           </Button>
@@ -515,6 +496,15 @@ const ActionExpressionBuilder: React.FC<ActionExpressionBuilderProps> = ({
           </IconButton>
         </Tooltip>
       </Box>
+
+      {/* Operator Modal */}
+      <OperatorModal
+        open={isOperatorModalOpen}
+        onClose={handleCloseOperatorModal}
+        operators={getOperatorsForType("numeric")} // Default to numeric, could be made dynamic
+        onSelectOperator={handleOperatorSelect}
+        fieldType="numeric"
+      />
     </Box>
   );
 };

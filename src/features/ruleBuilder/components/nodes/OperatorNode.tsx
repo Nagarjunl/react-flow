@@ -1,17 +1,11 @@
 import React, { useState, useCallback } from "react";
-import {
-  Box,
-  Typography,
-  Autocomplete,
-  TextField,
-  Button,
-} from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import { getOperatorsForType } from "../../utils/dataSourceUtils";
+import OperatorModal from "../OperatorModal";
 
 interface OperatorNodeProps {
   id: string;
-  operator?: string;
   fieldType?: string;
   onUpdate: (id: string, updates: { operator?: string }) => void;
   onAdd?: (partData: { operator: string }) => void;
@@ -19,27 +13,31 @@ interface OperatorNodeProps {
 
 const OperatorNode: React.FC<OperatorNodeProps> = ({
   id,
-  operator = "",
   fieldType = "numeric",
   onUpdate,
   onAdd,
 }) => {
-  const [selectedOperator, setSelectedOperator] = useState(operator);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const availableOperators = getOperatorsForType(fieldType);
 
-  const handleOperatorChange = useCallback(
-    (_: any, newValue: any) => {
-      const operator = newValue ? newValue.value : "";
-      setSelectedOperator(operator);
-      onUpdate(id, { operator });
+  const handleOperatorSelect = useCallback(
+    (operator: { value: string; label: string; description?: string }) => {
+      onUpdate(id, { operator: operator.value });
+      if (onAdd) {
+        onAdd({ operator: operator.value });
+      }
     },
-    [id, onUpdate]
+    [id, onUpdate, onAdd]
   );
 
-  const selectedOperatorOption = availableOperators.find(
-    (op) => op.value === selectedOperator
-  );
+  const handleAddClick = useCallback(() => {
+    setIsModalOpen(true);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
 
   return (
     <Box
@@ -67,53 +65,29 @@ const OperatorNode: React.FC<OperatorNodeProps> = ({
         ⚡ Operator
       </Typography>
 
-      {/* Operator Selection with Add Button */}
-      <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-        <Autocomplete
-          size="small"
-          options={availableOperators}
-          getOptionLabel={(option) => option.label || ""}
-          value={selectedOperatorOption || null}
-          onChange={handleOperatorChange}
-          sx={{ flex: 1 }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Operator *"
-              variant="outlined"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "white",
-                  fontSize: "0.625rem",
-                  "& .MuiOutlinedInput-input": {
-                    color: "#333",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "0.625rem",
-                  color: "#666",
-                },
-                "& .MuiSvgIcon-root": {
-                  color: "#666",
-                },
-              }}
-            />
-          )}
-        />
-
+      {/* Add Operator Button */}
+      <Box sx={{ mb: 1 }}>
         <Button
           size="small"
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => {
-            if (selectedOperator && onAdd) {
-              onAdd({ operator: selectedOperator });
-            }
+          onClick={handleAddClick}
+          fullWidth
+          sx={{
+            backgroundColor: "#f59e0b",
+            color: "white",
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            textTransform: "none",
+            py: 1,
+            "&:hover": {
+              backgroundColor: "#d97706",
+              transform: "translateY(-1px)",
+              boxShadow: "0 2px 4px rgba(245, 158, 11, 0.3)",
+            },
           }}
-          disabled={!selectedOperator}
-          sx={{ minWidth: "auto", px: 1 }}
         >
-          Add
+          Add Operator
         </Button>
       </Box>
 
@@ -133,6 +107,15 @@ const OperatorNode: React.FC<OperatorNodeProps> = ({
           Type: {fieldType}
         </Typography>
       </Box>
+
+      {/* Operator Modal */}
+      <OperatorModal
+        open={isModalOpen}
+        onClose={handleModalClose}
+        operators={availableOperators}
+        onSelectOperator={handleOperatorSelect}
+        fieldType={fieldType}
+      />
     </Box>
   );
 };

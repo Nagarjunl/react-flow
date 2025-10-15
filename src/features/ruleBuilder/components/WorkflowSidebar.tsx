@@ -3,6 +3,7 @@ import { Paper, Typography, TextField, Button, Alert } from "@mui/material";
 import {
   Add as AddIcon,
   Description as GenerateIcon,
+  Save as SaveIcon,
 } from "@mui/icons-material";
 import type { WorkflowData } from "../types";
 
@@ -12,6 +13,7 @@ interface WorkflowSidebarProps {
   onWorkflowChange: (field: keyof WorkflowData, value: string) => void;
   onAddRule: () => void;
   onGenerateJson: () => void;
+  onSaveToApi: () => void;
 }
 
 const WorkflowSidebar: React.FC<WorkflowSidebarProps> = ({
@@ -20,6 +22,7 @@ const WorkflowSidebar: React.FC<WorkflowSidebarProps> = ({
   onWorkflowChange,
   onAddRule,
   onGenerateJson,
+  onSaveToApi,
 }) => {
   return (
     <Paper
@@ -91,6 +94,7 @@ const WorkflowSidebar: React.FC<WorkflowSidebarProps> = ({
           fontWeight: 600,
           textTransform: "none",
           py: 1.5,
+          mb: 1,
           "&:hover": {
             background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
             transform: "translateY(-1px)",
@@ -99,6 +103,29 @@ const WorkflowSidebar: React.FC<WorkflowSidebarProps> = ({
         }}
       >
         Generate JSON
+      </Button>
+
+      <Button
+        variant="contained"
+        startIcon={<SaveIcon />}
+        onClick={onSaveToApi}
+        disabled={!workflowData.workflowName.trim()}
+        fullWidth
+        sx={{
+          background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+          color: "white",
+          fontSize: "0.875rem",
+          fontWeight: 600,
+          textTransform: "none",
+          py: 1.5,
+          "&:hover": {
+            background: "linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)",
+            transform: "translateY(-1px)",
+            boxShadow: "0 4px 8px rgba(220, 38, 38, 0.3)",
+          },
+        }}
+      >
+        Save to API
       </Button>
 
       {/* Validation Errors */}

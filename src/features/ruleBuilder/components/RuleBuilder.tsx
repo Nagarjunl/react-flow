@@ -14,6 +14,7 @@ import { useRuleBuilder } from "../hooks/useRuleBuilder";
 import WorkflowSidebar from "../components/WorkflowSidebar";
 import RuleGroupComponent from "../components/RuleGroupComponent";
 import JsonDrawer from "../../../components/JsonDrawer";
+import { useCreateRuleMutation } from "../../../Api/rulesApi";
 import type { RuleBuilderProps } from "../types";
 
 const RuleBuilder: React.FC<RuleBuilderProps> = ({
@@ -24,6 +25,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({
   const { state, actions } = useRuleBuilder(initialWorkflow);
   const [isJsonDrawerOpen, setIsJsonDrawerOpen] = useState(false);
   const [generatedJson, setGeneratedJson] = useState("");
+  const [createRuleMutation] = useCreateRuleMutation();
 
   const handleSave = () => {
     const workflow = actions.generateWorkflow();
@@ -45,6 +47,42 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({
 
   const handleCloseJsonDrawer = () => {
     setIsJsonDrawerOpen(false);
+  };
+
+  const handleSaveToApi = async () => {
+    try {
+      if (!state.workflowData.workflowName.trim()) {
+        alert("Please enter a workflow name first.");
+        return;
+      }
+
+      // Generate workflow data
+      const workflow = actions.generateWorkflow();
+
+      // Prepare API data similar to the main ReactFlow component
+      const apiData = {
+        name: workflow.workflowName,
+        description: workflow.description,
+        ruleJson: JSON.stringify(workflow),
+        flowJson: JSON.stringify({
+          nodes: [],
+          edges: [],
+          viewport: { x: 0, y: 0, zoom: 1 },
+        }),
+        isActive: true,
+      };
+
+      // Send to API
+      const result = await createRuleMutation({
+        data: apiData,
+      }).unwrap();
+
+      console.log("Workflow saved successfully:", result);
+      alert("Workflow saved successfully to API!");
+    } catch (error) {
+      console.error("Failed to save workflow to API:", error);
+      alert("Failed to save workflow to API. Please try again.");
+    }
   };
 
   return (
@@ -80,6 +118,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({
           onWorkflowChange={actions.updateWorkflowData}
           onAddRule={actions.addRuleGroup}
           onGenerateJson={handleGenerateJson}
+          onSaveToApi={handleSaveToApi}
         />
 
         {/* Right Content - Rule Groups */}

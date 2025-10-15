@@ -35,42 +35,37 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
 }) => {
   return (
     <Card sx={{ mb: 2 }}>
-      <CardHeader
-        title={
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <TextField
-              placeholder="Enter rule name"
-              value={ruleGroup.ruleName}
-              onChange={(e) =>
-                onUpdate(ruleGroup.id, {
-                  ruleName: e.target.value,
-                })
-              }
-              size="small"
-              sx={{ flex: 1 }}
-            />
-            <Tooltip title="Delete Rule">
-              <IconButton
-                size="small"
-                onClick={() => onDelete(ruleGroup.id)}
-                color="error"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        }
-        action={
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={() => onAddActionGroup(ruleGroup.id)}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, p: 2 }}>
+        <TextField
+          placeholder="Enter rule name"
+          value={ruleGroup.ruleName}
+          onChange={(e) =>
+            onUpdate(ruleGroup.id, {
+              ruleName: e.target.value,
+            })
+          }
+          size="small"
+          sx={{ flex: 1 }}
+        />
+        <Tooltip title="Delete Rule">
+          <IconButton
             size="small"
+            onClick={() => onDelete(ruleGroup.id)}
+            color="error"
           >
-            Add Action Group
-          </Button>
-        }
-      />
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+
+        <Button
+          variant="outlined"
+          startIcon={<AddIcon />}
+          onClick={() => onAddActionGroup(ruleGroup.id)}
+          size="small"
+        >
+          Add Action Group
+        </Button>
+      </Box>
 
       <CardContent>
         {/* Expression Input */}

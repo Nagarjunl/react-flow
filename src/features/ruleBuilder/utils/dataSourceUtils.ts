@@ -51,43 +51,224 @@ export const getFieldTypes = (): string[] => {
 export const getOperatorsForType = (fieldType: string) => {
   const operators = {
     numeric: [
-      { value: ">=", label: "Greater than or equal" },
-      { value: "<=", label: "Less than or equal" },
-      { value: "=", label: "Equal to" },
-      { value: ">", label: "Greater than" },
-      { value: "<", label: "Less than" },
-      { value: "!=", label: "Not equal to" },
-      { value: "+", label: "Addition" },
-      { value: "-", label: "Subtraction" },
-      { value: "*", label: "Multiplication" },
-      { value: "/", label: "Division" },
+      {
+        value: "=",
+        label: "Equals",
+        description: "True if input value equals the specified value",
+      },
+      {
+        value: ">=",
+        label: "Greater than or equal",
+        description:
+          "True if input value is greater than or equal to the specified value",
+      },
+      {
+        value: ">",
+        label: "Greater than",
+        description: "True if input value is greater than the specified value",
+      },
+      {
+        value: "<=",
+        label: "Less than or equal",
+        description:
+          "True if input value is less than or equal to the specified value",
+      },
+      {
+        value: "<",
+        label: "Less than",
+        description: "True if input value is less than the specified value",
+      },
+      {
+        value: "!=",
+        label: "Not equal to",
+        description: "True if input value is not equal to the specified value",
+      },
+      {
+        value: "+",
+        label: "Addition",
+        description: "Add the specified value to input value",
+      },
+      {
+        value: "-",
+        label: "Subtraction",
+        description: "Subtract the specified value from input value",
+      },
+      {
+        value: "*",
+        label: "Multiplication",
+        description: "Multiply input value by the specified value",
+      },
+      {
+        value: "/",
+        label: "Division",
+        description: "Divide input value by the specified value",
+      },
     ],
     integer: [
-      { value: ">=", label: "Greater than or equal" },
-      { value: "<=", label: "Less than or equal" },
-      { value: "=", label: "Equal to" },
-      { value: ">", label: "Greater than" },
-      { value: "<", label: "Less than" },
-      { value: "!=", label: "Not equal to" },
-      { value: "+", label: "Addition" },
-      { value: "-", label: "Subtraction" },
-      { value: "*", label: "Multiplication" },
-      { value: "/", label: "Division" },
+      {
+        value: "=",
+        label: "Equals",
+        description: "True if input value equals the specified value",
+      },
+      {
+        value: "IN",
+        label: "Is in",
+        description:
+          "True if input value is in set. Members of the set can be separated by | [PIPE] OR ; [SEMICOLON] OR , [COMMA]",
+      },
+      {
+        value: "ANY",
+        label: "Anything",
+        description: "Input value can be anything",
+      },
+      {
+        value: "! IN",
+        label: "Not in",
+        description:
+          "True if input value is NOT in set. Members of the set can be separated by | [PIPE] OR ; [SEMICOLON] OR , [COMMA]",
+      },
+      {
+        value: ">=",
+        label: "Greater than or equal",
+        description:
+          "True if input value is greater than or equal to the specified value",
+      },
+      {
+        value: ">",
+        label: "Greater than",
+        description: "True if input value is greater than the specified value",
+      },
+      {
+        value: "<=",
+        label: "Less than or equal",
+        description:
+          "True if input value is less than or equal to the specified value",
+      },
+      {
+        value: "<",
+        label: "Less than",
+        description: "True if input value is less than the specified value",
+      },
+      {
+        value: "!=",
+        label: "Not equal to",
+        description: "True if input value is not equal to the specified value",
+      },
+      {
+        value: "+",
+        label: "Addition",
+        description: "Add the specified value to input value",
+      },
+      {
+        value: "-",
+        label: "Subtraction",
+        description: "Subtract the specified value from input value",
+      },
+      {
+        value: "*",
+        label: "Multiplication",
+        description: "Multiply input value by the specified value",
+      },
+      {
+        value: "/",
+        label: "Division",
+        description: "Divide input value by the specified value",
+      },
     ],
     varchar: [
-      { value: "contains", label: "Contains" },
-      { value: "equals", label: "Equals" },
-      { value: "starts with", label: "Starts with" },
-      { value: "ends with", label: "Ends with" },
-      { value: "!=", label: "Not equal to" },
+      {
+        value: "=",
+        label: "Equals",
+        description: "True if input value equals the specified value",
+      },
+      {
+        value: "IN",
+        label: "Is in",
+        description:
+          "True if input value is in set. Members of the set can be separated by | [PIPE] OR ; [SEMICOLON] OR , [COMMA]",
+      },
+      {
+        value: "ANY",
+        label: "Anything",
+        description: "Input value can be anything",
+      },
+      {
+        value: "! IN",
+        label: "Not in",
+        description:
+          "True if input value is NOT in set. Members of the set can be separated by | [PIPE] OR ; [SEMICOLON] OR , [COMMA]",
+      },
+      {
+        value: "contains",
+        label: "Contains",
+        description: "True if input value contains the specified text",
+      },
+      {
+        value: "starts with",
+        label: "Starts with",
+        description: "True if input value starts with the specified text",
+      },
+      {
+        value: "ends with",
+        label: "Ends with",
+        description: "True if input value ends with the specified text",
+      },
+      {
+        value: "!=",
+        label: "Not equal to",
+        description: "True if input value is not equal to the specified value",
+      },
     ],
     date: [
-      { value: ">=", label: "Greater than or equal" },
-      { value: "<=", label: "Less than or equal" },
-      { value: "=", label: "Equal to" },
-      { value: ">", label: "After" },
-      { value: "<", label: "Before" },
-      { value: "!=", label: "Not equal to" },
+      {
+        value: "=",
+        label: "Equals",
+        description: "True if input value equals the specified value",
+      },
+      {
+        value: "IN",
+        label: "Is in",
+        description:
+          "True if input value is in set. Members of the set can be separated by | [PIPE] OR ; [SEMICOLON] OR , [COMMA]",
+      },
+      {
+        value: "ANY",
+        label: "Anything",
+        description: "Input value can be anything",
+      },
+      {
+        value: "! IN",
+        label: "Not in",
+        description:
+          "True if input value is NOT in set. Members of the set can be separated by | [PIPE] OR ; [SEMICOLON] OR , [COMMA]",
+      },
+      {
+        value: ">=",
+        label: "Greater than or equal",
+        description:
+          "True if input value is greater than or equal to the specified value",
+      },
+      {
+        value: ">",
+        label: "After",
+        description: "True if input value is after the specified date",
+      },
+      {
+        value: "<=",
+        label: "Less than or equal",
+        description:
+          "True if input value is less than or equal to the specified value",
+      },
+      {
+        value: "<",
+        label: "Before",
+        description: "True if input value is before the specified date",
+      },
+      {
+        value: "!=",
+        label: "Not equal to",
+        description: "True if input value is not equal to the specified value",
+      },
     ],
   };
 
