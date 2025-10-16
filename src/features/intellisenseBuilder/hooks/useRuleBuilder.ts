@@ -41,12 +41,54 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     []
   );
 
+  // Validate all rules
+  const validateRules = useCallback((): string[] => {
+    const errors: string[] = [];
+
+    // Check if workflow name is provided
+    if (!state.workflowData.workflowName.trim()) {
+      errors.push("Workflow name is required");
+    }
+
+    // Check each rule group
+    state.ruleGroups.forEach((rule, index) => {
+      if (!rule.ruleName.trim()) {
+        errors.push(`Rule ${index + 1}: Rule name is required`);
+      }
+      if (!rule.expression.trim()) {
+        errors.push(`Rule ${index + 1}: Rule expression is required`);
+      }
+
+      // Check each action group within the rule
+      rule.actionGroups.forEach((action, actionIndex) => {
+        if (!action.actionType.trim()) {
+          errors.push(
+            `Rule ${index + 1}, Action ${
+              actionIndex + 1
+            }: Action type is required`
+          );
+        }
+        if (!action.expression?.trim()) {
+          errors.push(
+            `Rule ${index + 1}, Action ${
+              actionIndex + 1
+            }: Action expression is required`
+          );
+        }
+      });
+    });
+
+    return errors;
+  }, [state.workflowData.workflowName, state.ruleGroups]);
+
   // Add new rule group
   const addRuleGroup = useCallback(() => {
-    if (!state.workflowData.workflowName.trim()) {
+    const validationErrors = validateRules();
+
+    if (validationErrors.length > 0) {
       setState((prev) => ({
         ...prev,
-        validationErrors: ["Workflow name is required to add rules"],
+        validationErrors,
       }));
       return;
     }
@@ -63,7 +105,7 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
       ruleGroups: [...prev.ruleGroups, newRuleGroup],
       validationErrors: [],
     }));
-  }, [state.workflowData.workflowName]);
+  }, [validateRules]);
 
   // Update rule group
   const updateRuleGroup = useCallback(
@@ -85,6 +127,23 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
       ruleGroups: prev.ruleGroups.filter((rule) => rule.id !== ruleId),
     }));
   }, []);
+
+  // Reorder rule groups
+  const reorderRuleGroups = useCallback(
+    (startIndex: number, endIndex: number) => {
+      setState((prev) => {
+        const newRuleGroups = Array.from(prev.ruleGroups);
+        const [removed] = newRuleGroups.splice(startIndex, 1);
+        newRuleGroups.splice(endIndex, 0, removed);
+
+        return {
+          ...prev,
+          ruleGroups: newRuleGroups,
+        };
+      });
+    },
+    []
+  );
 
   // Add action group to rule
   const addActionGroup = useCallback((ruleId: string) => {
@@ -165,6 +224,11 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     return workflow;
   }, [state.workflowData, state.ruleGroups]);
 
+  // Validate workflow before saving
+  const validateWorkflow = useCallback((): string[] => {
+    return validateRules();
+  }, [validateRules]);
+
   // Test workflow
   const testWorkflow = useCallback(() => {
     const workflow = generateWorkflow();
@@ -190,11 +254,13 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     addRuleGroup,
     updateRuleGroup,
     deleteRuleGroup,
+    reorderRuleGroups,
     addActionGroup,
     updateActionGroup,
     deleteActionGroup,
     generateWorkflow,
     testWorkflow,
+    validateWorkflow,
     clearValidationErrors,
   };
 

@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from "react";
 import {
-  Paper,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Box,
   Typography,
   TextField,
@@ -8,8 +10,12 @@ import {
   Stack,
   Autocomplete,
   Tooltip,
+  FormHelperText,
 } from "@mui/material";
-import { Delete as DeleteIcon } from "@mui/icons-material";
+import {
+  Delete as DeleteIcon,
+  ExpandMore as ExpandMoreIcon,
+} from "@mui/icons-material";
 import { actionTypes } from "../../../types/nodeTypes";
 import RuleExpressionEditor from "./RuleExpressionEditor";
 import type { ActionGroup } from "../types";
@@ -46,120 +52,143 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
   );
 
   return (
-    <Paper key={actionGroup.id} sx={{ p: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          mb: 2,
-        }}
-      >
-        <Typography variant="subtitle2" sx={{ minWidth: 100 }}>
-          Action Group:
-        </Typography>
-        <Tooltip title="Delete Action Group">
-          <IconButton
-            size="small"
-            onClick={() => onDelete(ruleId, actionGroup.id)}
-            color="error"
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      </Box>
-
-      {/* Single Row Layout for Action Type and Action Name */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        {/* Action Type Autocomplete */}
-        <Autocomplete
-          size="small"
-          options={actionTypes}
-          getOptionLabel={(option) => option.label || ""}
-          value={
-            actionTypes.find((type) => type.value === actionGroup.actionType) ||
-            null
-          }
-          onChange={(_, newValue) =>
-            onUpdate(ruleId, actionGroup.id, {
-              actionType: newValue ? newValue.value : "",
-            })
-          }
-          sx={{ flex: 1 }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Action Type *"
-              variant="outlined"
-              placeholder="Select action type..."
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "white",
-                  fontSize: "0.75rem",
-                  "& .MuiOutlinedInput-input": {
-                    color: "#333",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontSize: "0.75rem",
-                  color: "#666",
-                },
-                "& .MuiSvgIcon-root": {
-                  color: "#666",
-                },
-              }}
-            />
-          )}
-        />
-
-        {/* Action Name */}
-        <TextField
-          label="Action Name *"
-          value={actionGroup.actionName}
-          onChange={(e) =>
-            onUpdate(ruleId, actionGroup.id, {
-              actionName: e.target.value,
-            })
-          }
-          size="small"
-          sx={{
-            flex: 1,
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "white",
-              fontSize: "0.75rem",
-              "& .MuiOutlinedInput-input": {
-                color: "#333",
-              },
-            },
-            "& .MuiInputLabel-root": {
-              fontSize: "0.75rem",
-              color: "#666",
-            },
-          }}
-          placeholder="Enter action name..."
-        />
-      </Stack>
-
-      {/* Action Expression with Intellisense */}
-      <Box sx={{ mt: 2 }}>
-        <RuleExpressionEditor
-          value={expressionValue}
-          onChange={handleExpressionChange}
-          label="Action Expression (Formula)"
-          placeholder="e.g., sales.Amount * 0.05 or user.Name + ' - Commission'"
-          height="80px"
-          theme={editorTheme}
-        />
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ mt: 0.5, display: "block", fontSize: "0.7rem" }}
+    <Accordion sx={{ mb: 1 }} defaultExpanded>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}
         >
-          Define the action formula using tables, fields, operators, and
-          functions
-        </Typography>
-      </Box>
-    </Paper>
+          <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
+            Action Group:
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+            {actionGroup.actionName ||
+              actionGroup.actionType ||
+              "Untitled Action"}
+          </Typography>
+          <Tooltip title="Delete Action Group">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(ruleId, actionGroup.id);
+              }}
+              color="error"
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </AccordionSummary>
+
+      <AccordionDetails>
+        {/* Single Row Layout for Action Type and Action Name */}
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          {/* Action Type Autocomplete */}
+          <Box sx={{ flex: 1 }}>
+            <Autocomplete
+              size="small"
+              options={actionTypes}
+              getOptionLabel={(option) => option.label || ""}
+              value={
+                actionTypes.find(
+                  (type) => type.value === actionGroup.actionType
+                ) || null
+              }
+              onChange={(_, newValue) =>
+                onUpdate(ruleId, actionGroup.id, {
+                  actionType: newValue ? newValue.value : "",
+                })
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Action Type *"
+                  variant="outlined"
+                  placeholder="Select action type..."
+                  required
+                  error={!actionGroup.actionType.trim()}
+                  helperText={
+                    !actionGroup.actionType.trim()
+                      ? "Action type is required"
+                      : ""
+                  }
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "white",
+                      fontSize: "0.75rem",
+                      "& .MuiOutlinedInput-input": {
+                        color: "#333",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      fontSize: "0.75rem",
+                      color: "#666",
+                    },
+                    "& .MuiSvgIcon-root": {
+                      color: "#666",
+                    },
+                  }}
+                />
+              )}
+            />
+          </Box>
+
+          {/* Action Name */}
+          <TextField
+            label="Action Name"
+            value={actionGroup.actionName}
+            onChange={(e) =>
+              onUpdate(ruleId, actionGroup.id, {
+                actionName: e.target.value,
+              })
+            }
+            size="small"
+            sx={{
+              flex: 1,
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: "white",
+                fontSize: "0.75rem",
+                "& .MuiOutlinedInput-input": {
+                  color: "#333",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                fontSize: "0.75rem",
+                color: "#666",
+              },
+            }}
+            placeholder="Enter action name..."
+          />
+        </Stack>
+
+        {/* Action Expression with Intellisense */}
+        <Box sx={{ mt: 2 }}>
+          <RuleExpressionEditor
+            value={expressionValue}
+            onChange={handleExpressionChange}
+            label="Action Expression (Formula)"
+            placeholder="e.g., sales.Amount * 0.05 or user.Name + ' - Commission'"
+            height="80px"
+            theme={editorTheme}
+            required={true}
+            hasError={!actionGroup.expression?.trim()}
+          />
+          {!actionGroup.expression?.trim() && (
+            <FormHelperText error sx={{ mt: 0.5 }}>
+              Action expression is required
+            </FormHelperText>
+          )}
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 0.5, display: "block", fontSize: "0.7rem" }}
+          >
+            Define the action formula using tables, fields, operators, and
+            functions
+          </Typography>
+        </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 };
 

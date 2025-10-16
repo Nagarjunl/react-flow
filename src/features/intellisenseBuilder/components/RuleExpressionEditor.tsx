@@ -16,6 +16,8 @@ interface RuleExpressionEditorProps {
   placeholder?: string;
   height?: string;
   theme?: "light" | "dark";
+  required?: boolean;
+  hasError?: boolean;
 }
 
 // Custom completion source for rule expressions
@@ -73,6 +75,7 @@ function ruleExpressionCompletions(
 
   // Build properties for dotted access (e.g., user.Name)
   const properties: any[] = [];
+
   Object.entries(activeSchema).forEach(([tableName, fields]: [string, any]) => {
     fields.forEach((field: any) => {
       properties.push({
@@ -546,6 +549,7 @@ function ruleExpressionCompletions(
 
   // 3. Check for property chain (e.g., user.DateJoined. or x.CreatedOn.)
   const propertyChainMatch = beforeCursor.match(/(\w+)\.(\w+)\.$/);
+
   if (propertyChainMatch) {
     let tableName = propertyChainMatch[1];
     const fieldName = propertyChainMatch[2];
@@ -690,6 +694,8 @@ const RuleExpressionEditor: React.FC<RuleExpressionEditorProps> = ({
   placeholder = "Enter expression...",
   height = "120px",
   theme = "light",
+  required = false,
+  hasError = false,
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
@@ -781,6 +787,9 @@ const RuleExpressionEditor: React.FC<RuleExpressionEditorProps> = ({
           sx={{ mb: 1, fontSize: "0.75rem", color: "#666" }}
         >
           {label}
+          {required && (
+            <span style={{ color: "#d32f2f", marginLeft: "4px" }}>*</span>
+          )}
         </Typography>
       )}
       <CodeMirror
@@ -792,7 +801,10 @@ const RuleExpressionEditor: React.FC<RuleExpressionEditorProps> = ({
         onChange={handleChange}
         style={{
           fontSize: "14px",
-          border: "1px solid #ddd",
+          border:
+            hasError || (required && !localValue.trim())
+              ? "1px solid #d32f2f"
+              : "1px solid #ddd",
           borderRadius: "4px",
         }}
         basicSetup={{

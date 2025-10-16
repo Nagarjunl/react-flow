@@ -141,6 +141,7 @@ const IntellisenseDemo: React.FC = () => {
               placeholder="e.g., metrics.TargetAchievement >= 120 AND metrics.AttendancePercentage >= 95"
               height="120px"
               theme={editorTheme}
+              required={true}
             />
             <Paper sx={{ p: 2, mt: 2 }}>
               <Typography variant="caption">Current Expression:</Typography>
@@ -171,6 +172,7 @@ const IntellisenseDemo: React.FC = () => {
               placeholder="e.g., sales.Amount * 0.05"
               height="100px"
               theme={editorTheme}
+              required={true}
             />
             <Paper sx={{ p: 2, mt: 2 }}>
               <Typography variant="caption" color="text.secondary">

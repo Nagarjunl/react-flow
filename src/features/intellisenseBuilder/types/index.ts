@@ -38,6 +38,7 @@ export interface UseRuleBuilderActions {
   addRuleGroup: () => void;
   updateRuleGroup: (ruleId: string, updates: Partial<RuleGroup>) => void;
   deleteRuleGroup: (ruleId: string) => void;
+  reorderRuleGroups: (startIndex: number, endIndex: number) => void;
   addActionGroup: (ruleId: string) => void;
   updateActionGroup: (
     ruleId: string,
@@ -47,6 +48,7 @@ export interface UseRuleBuilderActions {
   deleteActionGroup: (ruleId: string, actionId: string) => void;
   generateWorkflow: () => any;
   testWorkflow: () => void;
+  validateWorkflow: () => string[];
   clearValidationErrors: () => void;
 }
 
