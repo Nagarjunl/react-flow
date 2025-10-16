@@ -65,6 +65,7 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
   return (
     <Accordion sx={{ mb: 2 }} defaultExpanded ref={setNodeRef} style={style}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>

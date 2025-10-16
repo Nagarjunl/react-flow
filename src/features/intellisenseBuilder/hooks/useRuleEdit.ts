@@ -75,7 +75,7 @@ export const useRuleEdit = () => {
   /**
    * Transform loaded rule data to builder state
    */
-  const getTransformedRuleData = useCallback((): RuleBuilderState | null => {
+  const getTransformedRuleData = (): RuleBuilderState | null => {
     if (!ruleData || !isValidRuleForEditing(ruleData)) {
       setEditMode((prev) => ({
         ...prev,
@@ -104,7 +104,7 @@ export const useRuleEdit = () => {
       }));
       return null;
     }
-  }, [ruleData]);
+  };
 
   /**
    * Save edited rule

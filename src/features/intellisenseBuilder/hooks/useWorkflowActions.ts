@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../../../Store/StoreConfig";
 import {
   useCreateRuleMutation,
@@ -30,33 +30,24 @@ export const useWorkflowActions = () => {
     [createRuleMutation, updateRuleMutation, testRuleMutation, dispatch]
   );
 
-  const saveWorkflow = useCallback(
-    async (workflow: GeneratedWorkflow[]) => {
-      return workflowService.saveWorkflow(workflow);
-    },
-    [workflowService]
-  );
+  const saveWorkflow = async (workflow: GeneratedWorkflow[]) => {
+    return workflowService.saveWorkflow(workflow);
+  };
 
-  const updateWorkflow = useCallback(
-    async (workflow: GeneratedWorkflow[], ruleId: string | number) => {
-      return workflowService.updateWorkflow(workflow, ruleId);
-    },
-    [workflowService]
-  );
+  const updateWorkflow = async (
+    workflow: GeneratedWorkflow[],
+    ruleId: string | number
+  ) => {
+    return workflowService.updateWorkflow(workflow, ruleId);
+  };
 
-  const testWorkflow = useCallback(
-    async (workflow: GeneratedWorkflow[]) => {
-      return workflowService.testWorkflow(workflow, testData);
-    },
-    [workflowService, testData]
-  );
+  const testWorkflow = async (workflow: GeneratedWorkflow[]) => {
+    return workflowService.testWorkflow(workflow, testData);
+  };
 
-  const generateJSON = useCallback(
-    (workflow: GeneratedWorkflow[]) => {
-      return workflowService.generateJSON(workflow);
-    },
-    [workflowService]
-  );
+  const generateJSON = (workflow: GeneratedWorkflow[]) => {
+    return workflowService.generateJSON(workflow);
+  };
 
   return {
     saveWorkflow,

@@ -25,18 +25,15 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
   });
 
   // Handle workflow data changes
-  const updateWorkflowData = useCallback(
-    (field: keyof WorkflowData, value: string) => {
-      setState((prev) => ({
-        ...prev,
-        workflowData: {
-          ...prev.workflowData,
-          [field]: value,
-        },
-      }));
-    },
-    []
-  );
+  const updateWorkflowData = (field: keyof WorkflowData, value: string) => {
+    setState((prev) => ({
+      ...prev,
+      workflowData: {
+        ...prev.workflowData,
+        [field]: value,
+      },
+    }));
+  };
 
   // Validate all rules using the validator utility
   const validateRules = useCallback((): string[] => {
@@ -167,19 +164,19 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
   }, []);
 
   // Generate workflow JSON using the transformer utility
-  const generateWorkflow = useCallback((): GeneratedWorkflow[] => {
+  const generateWorkflow = (): GeneratedWorkflow[] => {
     return generateWorkflowJSON(state.workflowData, state.ruleGroups);
-  }, [state.workflowData, state.ruleGroups]);
+  };
 
   // Validate workflow before saving
-  const validateWorkflowFn = useCallback((): string[] => {
+  const validateWorkflowFn = (): string[] => {
     return validateRules();
-  }, [validateRules]);
+  };
 
   // Initialize with loaded data (for edit mode)
-  const initializeWithData = useCallback((data: RuleBuilderState) => {
+  const initializeWithData = (data: RuleBuilderState) => {
     setState(data);
-  }, []);
+  };
 
   const actions: UseRuleBuilderActions = {
     updateWorkflowData,
