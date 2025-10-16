@@ -229,26 +229,6 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
                   )}
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Test Workflow">
-                <IconButton
-                  onClick={handleTest}
-                  color="primary"
-                  disabled={isTestLoading}
-                >
-                  <PlayIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip
-                title={editMode.isEditMode ? "Update Rule" : "Save Workflow"}
-              >
-                <IconButton
-                  onClick={handleSave}
-                  color="success"
-                  disabled={isUpdating}
-                >
-                  <SaveIcon />
-                </IconButton>
-              </Tooltip>
             </Stack>
           }
         />

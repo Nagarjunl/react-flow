@@ -89,21 +89,18 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
   }, []);
 
   // Reorder rule groups
-  const reorderRuleGroups = useCallback(
-    (startIndex: number, endIndex: number) => {
-      setState((prev) => {
-        const newRuleGroups = Array.from(prev.ruleGroups);
-        const [removed] = newRuleGroups.splice(startIndex, 1);
-        newRuleGroups.splice(endIndex, 0, removed);
+  const reorderRuleGroups = (startIndex: number, endIndex: number) => {
+    setState((prev) => {
+      const newRuleGroups = Array.from(prev.ruleGroups);
+      const [removed] = newRuleGroups.splice(startIndex, 1);
+      newRuleGroups.splice(endIndex, 0, removed);
 
-        return {
-          ...prev,
-          ruleGroups: newRuleGroups,
-        };
-      });
-    },
-    []
-  );
+      return {
+        ...prev,
+        ruleGroups: newRuleGroups,
+      };
+    });
+  };
 
   // Add action group to rule
   const addActionGroup = useCallback((ruleId: string) => {
