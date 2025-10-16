@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -8,7 +8,6 @@ import {
   TextField,
   Stack,
   Autocomplete,
-  Tooltip,
   FormHelperText,
 } from "@mui/material";
 import {
@@ -17,6 +16,12 @@ import {
 } from "@mui/icons-material";
 import RuleExpressionEditor from "./RuleExpressionEditor";
 import { type ActionGroup, actionTypes } from "../types";
+import { IconActionButton } from "../ui";
+import {
+  PLACEHOLDER_TEXT,
+  HELPER_TEXT,
+  VALIDATION_MESSAGES,
+} from "../constants";
 
 interface ActionGroupComponentProps {
   actionGroup: ActionGroup;
@@ -37,13 +42,8 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
   onDelete,
   editorTheme = "light",
 }) => {
-  const [expressionValue, setExpressionValue] = useState(
-    actionGroup.expression || ""
-  );
-
   const handleExpressionChange = useCallback(
     (value: string) => {
-      setExpressionValue(value);
       onUpdate(ruleId, actionGroup.id, { expression: value });
     },
     [ruleId, actionGroup.id, onUpdate]
@@ -61,31 +61,15 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
           <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
             OnSuccess Action
           </Typography>
-          <Tooltip title="Delete Action Group">
-            <Box
-              component="div"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(ruleId, actionGroup.id);
-              }}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 32,
-                height: 32,
-                borderRadius: 1,
-                color: "error.main",
-                "&:hover": {
-                  backgroundColor: "error.light",
-                  color: "error.dark",
-                },
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </Box>
-          </Tooltip>
+          <IconActionButton
+            tooltip="Delete Action Group"
+            icon={<DeleteIcon fontSize="small" />}
+            variant="delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(ruleId, actionGroup.id);
+            }}
+          />
         </Box>
       </AccordionSummary>
 
@@ -113,12 +97,12 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
                   {...params}
                   label="Action Name *"
                   variant="outlined"
-                  placeholder="Enter action name..."
+                  placeholder={PLACEHOLDER_TEXT.ACTION_NAME}
                   required
                   error={!actionGroup.actionType.trim()}
                   helperText={
                     !actionGroup.actionType.trim()
-                      ? "Action name is required"
+                      ? VALIDATION_MESSAGES.ACTION_TYPE_REQUIRED
                       : ""
                   }
                   sx={{
@@ -166,17 +150,17 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
                 color: "#666",
               },
             }}
-            placeholder="Enter expression..."
+            placeholder={PLACEHOLDER_TEXT.ACTION_EXPRESSION}
           />
         </Stack>
 
         {/* Action Expression with Intellisense */}
         <Box sx={{ mt: 2 }}>
           <RuleExpressionEditor
-            value={expressionValue}
+            value={actionGroup.expression || ""}
             onChange={handleExpressionChange}
             label="Action Expression (Formula)"
-            placeholder="e.g., sales.Amount * 0.05 or user.Name + ' - Commission'"
+            placeholder={PLACEHOLDER_TEXT.ACTION_EXPRESSION}
             height="80px"
             theme={editorTheme}
             required={true}
@@ -184,7 +168,7 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
           />
           {!actionGroup.expression?.trim() && (
             <FormHelperText error sx={{ mt: 0.5 }}>
-              Action expression is required
+              {VALIDATION_MESSAGES.ACTION_EXPRESSION_REQUIRED}
             </FormHelperText>
           )}
           <Typography
@@ -192,8 +176,7 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
             color="text.secondary"
             sx={{ mt: 0.5, display: "block", fontSize: "0.7rem" }}
           >
-            Define the action formula using tables, fields, operators, and
-            functions
+            {HELPER_TEXT.ACTION_EXPRESSION_TIP}
           </Typography>
         </Box>
       </AccordionDetails>

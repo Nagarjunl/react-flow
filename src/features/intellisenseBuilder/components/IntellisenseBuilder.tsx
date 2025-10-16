@@ -9,8 +9,6 @@ import {
   IconButton,
   Tooltip,
   TextField,
-  Button,
-  Alert,
   Tabs,
   Tab,
 } from "@mui/material";
@@ -37,16 +35,13 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useRuleBuilder } from "../hooks/useRuleBuilder";
+import { useWorkflowActions } from "../hooks/useWorkflowActions";
 import RuleGroupComponent from "./RuleGroupComponent";
 import TestData from "./TestData";
 import JsonDrawer from "../../../components/JsonDrawer";
-import {
-  useCreateRuleMutation,
-  useTestRuleMutation,
-} from "../../../Api/rulesApi";
-import { useAppDispatch, useAppSelector } from "../../../Store/StoreConfig";
-import { updateWorkflowJson } from "../../../Store/slice/TestSlice";
 import type { RuleBuilderProps } from "../types";
+import { GradientButton, ValidationAlert, EmptyState } from "../ui";
+import { OUTLINED_BUTTON_STYLES } from "../constants";
 
 const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
   onWorkflowSave,
@@ -54,15 +49,17 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
   initialWorkflow,
 }) => {
   const { state, actions } = useRuleBuilder(initialWorkflow);
+  const {
+    saveWorkflowWithValidation,
+    testWorkflow,
+    generateJSON,
+    isTestLoading,
+  } = useWorkflowActions();
+
   const [isJsonDrawerOpen, setIsJsonDrawerOpen] = useState(false);
   const [generatedJson, setGeneratedJson] = useState("");
   const [editorTheme, setEditorTheme] = useState<"light" | "dark">("light");
   const [activeTab, setActiveTab] = useState(0);
-  const [createRuleMutation] = useCreateRuleMutation();
-  const [testRuleMutation, { isLoading: isTestLoading }] =
-    useTestRuleMutation();
-  const dispatch = useAppDispatch();
-  const testData = useAppSelector((state) => state.testData);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -82,39 +79,14 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
   };
 
   const handleTest = async () => {
-    try {
-      const workflow = actions.generateWorkflow();
-      const workflowJson = JSON.stringify(workflow, null, 2);
-
-      // Dispatch the current workflowJson to store
-      dispatch(updateWorkflowJson(workflowJson));
-
-      // Get the current test data (excluding workflowJson)
-      const { workflowJson: _, ...testDataWithoutWorkflow } = testData;
-
-      // Prepare the test data with the generated workflowJson
-      const testPayload = {
-        ...testDataWithoutWorkflow,
-        workflowJson: workflowJson,
-      };
-
-      console.log("Testing with payload:", testPayload);
-
-      const result = await testRuleMutation({ data: testPayload }).unwrap();
-      console.log("Test API result:", result);
-      alert("Test API called successfully! Check console for results.");
-
-      // Call the original onWorkflowTest callback
-      onWorkflowTest?.(workflow);
-    } catch (error) {
-      console.error("Test API error:", error);
-      alert("Failed to call test API. Check console for details.");
-    }
+    const workflow = actions.generateWorkflow();
+    await testWorkflow(workflow);
+    onWorkflowTest?.(workflow);
   };
 
   const handleGenerateJson = () => {
     const workflow = actions.generateWorkflow();
-    const jsonString = JSON.stringify(workflow, null, 2);
+    const jsonString = generateJSON(workflow);
     setGeneratedJson(jsonString);
     setIsJsonDrawerOpen(true);
   };
@@ -150,41 +122,9 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
   };
 
   const handleSaveToApi = async () => {
-    try {
-      // Validate workflow before saving
-      const validationErrors = actions.validateWorkflow();
-
-      if (validationErrors.length > 0) {
-        alert(
-          `Please fix the following errors before saving:\n\n${validationErrors.join(
-            "\n"
-          )}`
-        );
-        return;
-      }
-
-      // Generate workflow data
-      const workflow = actions.generateWorkflow();
-
-      // Prepare API data
-      const apiData = {
-        name: workflow[0].WorkflowName,
-        description: workflow[0].Description,
-        ruleJson: JSON.stringify(workflow),
-        isActive: true,
-      };
-
-      // Send to API
-      const result = await createRuleMutation({
-        data: apiData,
-      }).unwrap();
-
-      console.log("Workflow saved successfully:", result);
-      alert("Workflow saved successfully to API!");
-    } catch (error) {
-      console.error("Failed to save workflow to API:", error);
-      alert("Failed to save workflow to API. Please try again.");
-    }
+    const workflow = actions.generateWorkflow();
+    const validationErrors = actions.validateWorkflow();
+    await saveWorkflowWithValidation(workflow, validationErrors);
   };
 
   return (
@@ -272,13 +212,7 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
               </Box>
 
               {/* Validation Errors */}
-              {state.validationErrors.length > 0 && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  {state.validationErrors.map((error, index) => (
-                    <div key={index}>{error}</div>
-                  ))}
-                </Alert>
-              )}
+              <ValidationAlert errors={state.validationErrors} />
             </CardContent>
           </Card>
 
@@ -287,31 +221,10 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
             sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}
           >
             {state.ruleGroups.length === 0 ? (
-              <Card
-                sx={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    color="text.secondary"
-                    align="center"
-                  >
-                    No rules added yet
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    align="center"
-                  >
-                    Click "Add Rule" to start building your workflow
-                  </Typography>
-                </CardContent>
-              </Card>
+              <EmptyState
+                title="No rules added yet"
+                message='Click "Add Rule" to start building your workflow'
+              />
             ) : (
               <DndContext
                 sensors={sensors}
@@ -343,104 +256,42 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
           <Card sx={{ mt: 2 }}>
             <CardContent>
               <Stack direction="row" spacing={2} justifyContent="center">
-                <Button
-                  variant="contained"
+                <GradientButton
+                  gradientVariant="green"
                   startIcon={<AddIcon />}
                   onClick={actions.addRuleGroup}
                   disabled={!isValidationPassing()}
-                  sx={{
-                    background:
-                      "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                    color: "white",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    py: 1.5,
-                    px: 3,
-                    "&:hover": {
-                      background:
-                        "linear-gradient(135deg, #059669 0%, #047857 100%)",
-                      transform: "translateY(-1px)",
-                      boxShadow: "0 4px 8px rgba(16, 185, 129, 0.3)",
-                    },
-                  }}
                 >
                   Add Rule
-                </Button>
+                </GradientButton>
 
-                <Button
-                  variant="contained"
+                <GradientButton
+                  gradientVariant="orange"
                   startIcon={<GenerateIcon />}
                   onClick={handleGenerateJson}
                   disabled={!isValidationPassing()}
-                  sx={{
-                    background:
-                      "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                    color: "white",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    py: 1.5,
-                    px: 3,
-                    "&:hover": {
-                      background:
-                        "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
-                      transform: "translateY(-1px)",
-                      boxShadow: "0 4px 8px rgba(245, 158, 11, 0.3)",
-                    },
-                  }}
                 >
                   Generate JSON
-                </Button>
+                </GradientButton>
 
-                <Button
-                  variant="contained"
+                <GradientButton
+                  gradientVariant="red"
                   startIcon={<SaveIcon />}
                   onClick={handleSaveToApi}
                   disabled={!isValidationPassing()}
-                  sx={{
-                    background:
-                      "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
-                    color: "white",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    py: 1.5,
-                    px: 3,
-                    "&:hover": {
-                      background:
-                        "linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)",
-                      transform: "translateY(-1px)",
-                      boxShadow: "0 4px 8px rgba(220, 38, 38, 0.3)",
-                    },
-                  }}
                 >
                   Save to API
-                </Button>
+                </GradientButton>
 
-                <Button
-                  variant="outlined"
+                <GradientButton
+                  gradientVariant="green"
                   startIcon={<PlayIcon />}
                   onClick={handleTest}
                   disabled={!isValidationPassing() || isTestLoading}
-                  sx={{
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    py: 1.5,
-                    px: 3,
-                    borderColor: "#10b981",
-                    color: "#10b981",
-                    "&:hover": {
-                      borderColor: "#059669",
-                      backgroundColor: "#f0fdf4",
-                      transform: "translateY(-1px)",
-                      boxShadow: "0 4px 8px rgba(16, 185, 129, 0.3)",
-                    },
-                  }}
+                  sx={OUTLINED_BUTTON_STYLES.green}
                 >
                   {isTestLoading ? "Testing..." : "Test API"}
-                </Button>
+                </GradientButton>
               </Stack>
             </CardContent>
           </Card>

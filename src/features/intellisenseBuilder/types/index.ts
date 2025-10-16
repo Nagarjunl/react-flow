@@ -8,7 +8,6 @@ export interface WorkflowData {
 export interface ActionGroup {
   id: string;
   actionType: string;
-  actionName: string;
   expression?: string;
 }
 
@@ -68,13 +67,20 @@ export interface GeneratedWorkflow {
   }>;
 }
 
+// Action type enum for better type safety
+export enum ActionTypeEnum {
+  OnSuccess = "onSuccess",
+  OnFailure = "onFailure",
+  OnError = "onError",
+}
+
 export interface ActionType {
-  value: string;
+  value: ActionTypeEnum;
   label: string;
 }
 
 export const actionTypes: ActionType[] = [
-  { value: "onSuccess", label: "On Success" },
-  { value: "onFailure", label: "On Failure" },
-  { value: "onError", label: "On Error" },
+  { value: ActionTypeEnum.OnSuccess, label: "On Success" },
+  { value: ActionTypeEnum.OnFailure, label: "On Failure" },
+  { value: ActionTypeEnum.OnError, label: "On Error" },
 ];

@@ -7,7 +7,6 @@ import {
   Typography,
   TextField,
   Button,
-  Tooltip,
   Stack,
   FormHelperText,
 } from "@mui/material";
@@ -21,14 +20,24 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import ActionGroupComponent from "./ActionGroupComponent";
 import RuleExpressionEditor from "./RuleExpressionEditor";
-import type { RuleGroup } from "../types";
+import type { RuleGroup, ActionGroup } from "../types";
+import { IconActionButton } from "../ui";
+import {
+  PLACEHOLDER_TEXT,
+  HELPER_TEXT,
+  VALIDATION_MESSAGES,
+} from "../constants";
 
 interface RuleGroupComponentProps {
   ruleGroup: RuleGroup;
   onUpdate: (ruleId: string, updates: Partial<RuleGroup>) => void;
   onDelete: (ruleId: string) => void;
   onAddActionGroup: (ruleId: string) => void;
-  onUpdateActionGroup: (ruleId: string, actionId: string, updates: any) => void;
+  onUpdateActionGroup: (
+    ruleId: string,
+    actionId: string,
+    updates: Partial<ActionGroup>
+  ) => void;
   onDeleteActionGroup: (ruleId: string, actionId: string) => void;
   editorTheme?: "light" | "dark";
 }
@@ -62,31 +71,16 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
         <Box
           sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}
         >
-          <Tooltip title="Drag to reorder">
-            <Box
-              component="div"
-              {...attributes}
-              {...listeners}
-              sx={{
-                cursor: "grab",
-                "&:active": { cursor: "grabbing" },
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 32,
-                height: 32,
-                borderRadius: 1,
-                "&:hover": {
-                  backgroundColor: "action.hover",
-                },
-              }}
-            >
-              <DragIndicatorIcon fontSize="small" />
-            </Box>
-          </Tooltip>
+          <IconActionButton
+            tooltip="Drag to reorder"
+            icon={<DragIndicatorIcon fontSize="small" />}
+            variant="drag"
+            {...attributes}
+            {...listeners}
+          />
           <Box sx={{ flex: 1 }}>
             <TextField
-              placeholder="Enter rule name"
+              placeholder={PLACEHOLDER_TEXT.RULE_NAME}
               value={ruleGroup.ruleName}
               onChange={(e) =>
                 onUpdate(ruleGroup.id, {
@@ -98,36 +92,22 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
               required
               error={!ruleGroup.ruleName.trim()}
               helperText={
-                !ruleGroup.ruleName.trim() ? "Rule name is required" : ""
+                !ruleGroup.ruleName.trim()
+                  ? VALIDATION_MESSAGES.RULE_NAME_REQUIRED
+                  : ""
               }
               onClick={(e) => e.stopPropagation()}
             />
           </Box>
-          <Tooltip title="Delete Rule">
-            <Box
-              component="div"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(ruleGroup.id);
-              }}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 32,
-                height: 32,
-                borderRadius: 1,
-                color: "error.main",
-                "&:hover": {
-                  backgroundColor: "error.light",
-                  color: "error.dark",
-                },
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </Box>
-          </Tooltip>
+          <IconActionButton
+            tooltip="Delete Rule"
+            icon={<DeleteIcon fontSize="small" />}
+            variant="delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(ruleGroup.id);
+            }}
+          />
         </Box>
       </AccordionSummary>
 
@@ -138,7 +118,7 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
             value={ruleGroup.expression}
             onChange={(value) => onUpdate(ruleGroup.id, { expression: value })}
             label="Rule Expression (Condition)"
-            placeholder="e.g., metrics.TargetAchievement >= 120 AND metrics.AttendancePercentage >= 95"
+            placeholder={PLACEHOLDER_TEXT.RULE_EXPRESSION}
             height="100px"
             theme={editorTheme}
             required={true}
@@ -146,7 +126,7 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
           />
           {!ruleGroup.expression.trim() && (
             <FormHelperText error sx={{ mt: 0.5 }}>
-              Rule expression is required
+              {VALIDATION_MESSAGES.RULE_EXPRESSION_REQUIRED}
             </FormHelperText>
           )}
           <Typography
@@ -154,8 +134,7 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
             color="text.secondary"
             sx={{ mt: 0.5, display: "block" }}
           >
-            Tip: Type table names (metrics, user, sales) and use '.' to see
-            available fields. Press Ctrl+Space for suggestions.
+            {HELPER_TEXT.RULE_EXPRESSION_TIP}
           </Typography>
         </Box>
 

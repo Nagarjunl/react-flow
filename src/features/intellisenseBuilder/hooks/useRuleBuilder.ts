@@ -7,6 +7,9 @@ import type {
   UseRuleBuilderActions,
   GeneratedWorkflow,
 } from "../types";
+import { generateRuleId, generateActionId } from "../utils/idGenerator";
+import { generateWorkflowJSON } from "../utils/workflowTransformer";
+import { validateWorkflow } from "../utils/validator";
 
 const initialWorkflowData: WorkflowData = {
   workflowName: "",
@@ -35,45 +38,11 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     []
   );
 
-  // Validate all rules
+  // Validate all rules using the validator utility
   const validateRules = useCallback((): string[] => {
-    const errors: string[] = [];
-
-    // Check if workflow name is provided
-    if (!state.workflowData.workflowName.trim()) {
-      errors.push("Workflow name is required");
-    }
-
-    // Check each rule group
-    state.ruleGroups.forEach((rule, index) => {
-      if (!rule.ruleName.trim()) {
-        errors.push(`Rule ${index + 1}: Rule name is required`);
-      }
-      if (!rule.expression.trim()) {
-        errors.push(`Rule ${index + 1}: Rule expression is required`);
-      }
-
-      // Check each action group within the rule
-      rule.actionGroups.forEach((action, actionIndex) => {
-        if (!action.actionType.trim()) {
-          errors.push(
-            `Rule ${index + 1}, Action ${
-              actionIndex + 1
-            }: Action type is required`
-          );
-        }
-        if (!action.expression?.trim()) {
-          errors.push(
-            `Rule ${index + 1}, Action ${
-              actionIndex + 1
-            }: Action expression is required`
-          );
-        }
-      });
-    });
-
-    return errors;
-  }, [state.workflowData.workflowName, state.ruleGroups]);
+    const result = validateWorkflow(state.workflowData, state.ruleGroups);
+    return result.errors;
+  }, [state.workflowData, state.ruleGroups]);
 
   // Add new rule group
   const addRuleGroup = useCallback(() => {
@@ -88,7 +57,7 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     }
 
     const newRuleGroup: RuleGroup = {
-      id: `rule_${Date.now()}`,
+      id: generateRuleId(),
       ruleName: "",
       expression: "",
       actionGroups: [],
@@ -142,9 +111,8 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
   // Add action group to rule
   const addActionGroup = useCallback((ruleId: string) => {
     const newActionGroup: ActionGroup = {
-      id: `action_${Date.now()}`,
+      id: generateActionId(),
       actionType: "",
-      actionName: "",
       expression: "",
     };
 
@@ -198,47 +166,15 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     }));
   }, []);
 
-  // Generate workflow JSON
+  // Generate workflow JSON using the transformer utility
   const generateWorkflow = useCallback((): GeneratedWorkflow[] => {
-    const workflow: GeneratedWorkflow[] = [
-      {
-        WorkflowName: state.workflowData.workflowName,
-        Description: state.workflowData.description,
-        Rules: state.ruleGroups.map((rule) => {
-          const baseRule = {
-            RuleName: rule.ruleName,
-            Expression: rule.expression,
-          };
-
-          // Only include Actions if there are action groups
-          if (
-            rule.actionGroups.length > 0 &&
-            rule.actionGroups[0]?.actionType
-          ) {
-            return {
-              ...baseRule,
-              Actions: {
-                OnSuccess: {
-                  Name: rule.actionGroups[0].actionType,
-                  Context: {
-                    Expression: rule.actionGroups[0]?.expression || "",
-                  },
-                },
-              },
-            };
-          }
-
-          return baseRule;
-        }),
-      },
-    ];
-
+    const workflow = generateWorkflowJSON(state.workflowData, state.ruleGroups);
     console.log("Generated Workflow:", workflow);
     return workflow;
   }, [state.workflowData, state.ruleGroups]);
 
   // Validate workflow before saving
-  const validateWorkflow = useCallback((): string[] => {
+  const validateWorkflowFn = useCallback((): string[] => {
     return validateRules();
   }, [validateRules]);
 
@@ -252,7 +188,7 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     updateActionGroup,
     deleteActionGroup,
     generateWorkflow,
-    validateWorkflow,
+    validateWorkflow: validateWorkflowFn,
   };
 
   return {
