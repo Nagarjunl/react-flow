@@ -125,6 +125,16 @@ export const rulesApi = createApi({
       invalidatesTags: ["Rules"],
     }),
 
+    // Test rule
+    testRule: builder.mutation<any, { data: any }>({
+      query: (args) => ({
+        method: "POST",
+        url: "/Rules/test",
+        body: args.data,
+      }),
+      invalidatesTags: ["Rules"],
+    }),
+
     // Get countries
     getCountries: builder.query<CountryType[], { params?: QueryParamsType }>({
       query: (args) => ({
@@ -145,5 +155,6 @@ export const {
   useGetRuleSchemaQuery,
   useGetCommissionsQuery,
   useProcessRuleMutation,
+  useTestRuleMutation,
   useGetCountriesQuery,
 } = rulesApi;

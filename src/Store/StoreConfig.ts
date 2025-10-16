@@ -8,6 +8,7 @@ import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
 import accountSlice from "./slice/Account";
+import testDataSlice from "./slice/TestSlice";
 import { authApi } from "../Api/authApi";
 import { rulesApi } from "../Api/rulesApi";
 
@@ -23,6 +24,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [rulesApi.reducerPath]: rulesApi.reducer,
     auth: persistedAuthReducer,
+    testData: testDataSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

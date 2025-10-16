@@ -11,6 +11,8 @@ import {
   TextField,
   Button,
   Alert,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import {
   Save as SaveIcon,
@@ -36,6 +38,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useRuleBuilder } from "../hooks/useRuleBuilder";
 import RuleGroupComponent from "./RuleGroupComponent";
+import TestData from "./TestData";
 import JsonDrawer from "../../../components/JsonDrawer";
 import { useCreateRuleMutation } from "../../../Api/rulesApi";
 import type { RuleBuilderProps } from "../types";
@@ -49,6 +52,7 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
   const [isJsonDrawerOpen, setIsJsonDrawerOpen] = useState(false);
   const [generatedJson, setGeneratedJson] = useState("");
   const [editorTheme, setEditorTheme] = useState<"light" | "dark">("light");
+  const [activeTab, setActiveTab] = useState(0);
   const [createRuleMutation] = useCreateRuleMutation();
 
   // Drag and drop sensors
@@ -83,6 +87,10 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
 
   const handleCloseJsonDrawer = () => {
     setIsJsonDrawerOpen(false);
+  };
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
   };
 
   // Check if validation passes for enabling/disabling buttons
@@ -124,16 +132,11 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
       // Generate workflow data
       const workflow = actions.generateWorkflow();
 
-      // Prepare API data similar to the main ReactFlow component
+      // Prepare API data
       const apiData = {
-        name: workflow.workflowName,
-        description: workflow.description,
+        name: workflow.WorkflowName,
+        description: workflow.Description,
         ruleJson: JSON.stringify(workflow),
-        flowJson: JSON.stringify({
-          nodes: [],
-          edges: [],
-          viewport: { x: 0, y: 0, zoom: 1 },
-        }),
         isActive: true,
       };
 
@@ -155,7 +158,7 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
       {/* Header */}
       <Card sx={{ mb: 2 }}>
         <CardHeader
-          title="Rule Builder"
+          title="Intellisense Rule Builder"
           subheader="Build complex workflows with rules and actions"
           action={
             <Stack direction="row" spacing={1}>
@@ -189,181 +192,214 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
         />
       </Card>
 
-      {/* Workflow Details - Top Section */}
+      {/* Tabs */}
       <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Workflow Details
-          </Typography>
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-            <Box sx={{ flex: "1 1 300px", minWidth: "300px" }}>
-              <TextField
-                label="Workflow Name *"
-                value={state.workflowData.workflowName}
-                onChange={(e) =>
-                  actions.updateWorkflowData("workflowName", e.target.value)
-                }
-                fullWidth
-                size="small"
-                required
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 300px", minWidth: "300px" }}>
-              <TextField
-                label="Description"
-                value={state.workflowData.description}
-                onChange={(e) =>
-                  actions.updateWorkflowData("description", e.target.value)
-                }
-                fullWidth
-                size="small"
-              />
-            </Box>
-          </Box>
-
-          {/* Validation Errors */}
-          {state.validationErrors.length > 0 && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {state.validationErrors.map((error, index) => (
-                <div key={index}>{error}</div>
-              ))}
-            </Alert>
-          )}
-        </CardContent>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab label="Rule Builder" />
+            <Tab label="Test Data" />
+          </Tabs>
+        </Box>
       </Card>
 
-      {/* Main Content - Rule Groups */}
-      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-        {state.ruleGroups.length === 0 ? (
-          <Card
-            sx={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+      {/* Tab Content */}
+      {activeTab === 0 && (
+        <Box>
+          {/* Workflow Details - Top Section */}
+          <Card sx={{ mb: 2 }}>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" align="center">
-                No rules added yet
+              <Typography variant="h6" gutterBottom>
+                Workflow Details
               </Typography>
-              <Typography variant="body2" color="text.secondary" align="center">
-                Click "Add Rule" to start building your workflow
-              </Typography>
+              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                <Box sx={{ flex: "1 1 300px", minWidth: "300px" }}>
+                  <TextField
+                    label="Workflow Name *"
+                    value={state.workflowData.workflowName}
+                    onChange={(e) =>
+                      actions.updateWorkflowData("workflowName", e.target.value)
+                    }
+                    fullWidth
+                    size="small"
+                    required
+                  />
+                </Box>
+                <Box sx={{ flex: "1 1 300px", minWidth: "300px" }}>
+                  <TextField
+                    label="Description"
+                    value={state.workflowData.description}
+                    onChange={(e) =>
+                      actions.updateWorkflowData("description", e.target.value)
+                    }
+                    fullWidth
+                    size="small"
+                  />
+                </Box>
+              </Box>
+
+              {/* Validation Errors */}
+              {state.validationErrors.length > 0 && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {state.validationErrors.map((error, index) => (
+                    <div key={index}>{error}</div>
+                  ))}
+                </Alert>
+              )}
             </CardContent>
           </Card>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+
+          {/* Main Content - Rule Groups */}
+          <Box
+            sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}
           >
-            <SortableContext
-              items={state.ruleGroups.map((rule) => rule.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {state.ruleGroups.map((ruleGroup) => (
-                <RuleGroupComponent
-                  key={ruleGroup.id}
-                  ruleGroup={ruleGroup}
-                  onUpdate={actions.updateRuleGroup}
-                  onDelete={actions.deleteRuleGroup}
-                  onAddActionGroup={actions.addActionGroup}
-                  onUpdateActionGroup={actions.updateActionGroup}
-                  onDeleteActionGroup={actions.deleteActionGroup}
-                  editorTheme={editorTheme}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-        )}
-      </Box>
+            {state.ruleGroups.length === 0 ? (
+              <Card
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    color="text.secondary"
+                    align="center"
+                  >
+                    No rules added yet
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    align="center"
+                  >
+                    Click "Add Rule" to start building your workflow
+                  </Typography>
+                </CardContent>
+              </Card>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={state.ruleGroups.map((rule) => rule.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {state.ruleGroups.map((ruleGroup) => (
+                    <RuleGroupComponent
+                      key={ruleGroup.id}
+                      ruleGroup={ruleGroup}
+                      onUpdate={actions.updateRuleGroup}
+                      onDelete={actions.deleteRuleGroup}
+                      onAddActionGroup={actions.addActionGroup}
+                      onUpdateActionGroup={actions.updateActionGroup}
+                      onDeleteActionGroup={actions.deleteActionGroup}
+                      editorTheme={editorTheme}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            )}
+          </Box>
 
-      {/* Action Buttons - Bottom Section */}
-      <Card sx={{ mt: 2 }}>
-        <CardContent>
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={actions.addRuleGroup}
-              disabled={!isValidationPassing()}
-              sx={{
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                color: "white",
-                fontSize: "0.875rem",
-                fontWeight: 600,
-                textTransform: "none",
-                py: 1.5,
-                px: 3,
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #059669 0%, #047857 100%)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 4px 8px rgba(16, 185, 129, 0.3)",
-                },
-              }}
-            >
-              Add Rule
-            </Button>
+          {/* Action Buttons - Bottom Section */}
+          <Card sx={{ mt: 2 }}>
+            <CardContent>
+              <Stack direction="row" spacing={2} justifyContent="center">
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={actions.addRuleGroup}
+                  disabled={!isValidationPassing()}
+                  sx={{
+                    background:
+                      "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                    color: "white",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    py: 1.5,
+                    px: 3,
+                    "&:hover": {
+                      background:
+                        "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                      transform: "translateY(-1px)",
+                      boxShadow: "0 4px 8px rgba(16, 185, 129, 0.3)",
+                    },
+                  }}
+                >
+                  Add Rule
+                </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<GenerateIcon />}
-              onClick={handleGenerateJson}
-              disabled={!isValidationPassing()}
-              sx={{
-                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                color: "white",
-                fontSize: "0.875rem",
-                fontWeight: 600,
-                textTransform: "none",
-                py: 1.5,
-                px: 3,
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 4px 8px rgba(245, 158, 11, 0.3)",
-                },
-              }}
-            >
-              Generate JSON
-            </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<GenerateIcon />}
+                  onClick={handleGenerateJson}
+                  disabled={!isValidationPassing()}
+                  sx={{
+                    background:
+                      "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                    color: "white",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    py: 1.5,
+                    px: 3,
+                    "&:hover": {
+                      background:
+                        "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+                      transform: "translateY(-1px)",
+                      boxShadow: "0 4px 8px rgba(245, 158, 11, 0.3)",
+                    },
+                  }}
+                >
+                  Generate JSON
+                </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<SaveIcon />}
-              onClick={handleSaveToApi}
-              disabled={!isValidationPassing()}
-              sx={{
-                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
-                color: "white",
-                fontSize: "0.875rem",
-                fontWeight: 600,
-                textTransform: "none",
-                py: 1.5,
-                px: 3,
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 4px 8px rgba(220, 38, 38, 0.3)",
-                },
-              }}
-            >
-              Save to API
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
+                <Button
+                  variant="contained"
+                  startIcon={<SaveIcon />}
+                  onClick={handleSaveToApi}
+                  disabled={!isValidationPassing()}
+                  sx={{
+                    background:
+                      "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                    color: "white",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    py: 1.5,
+                    px: 3,
+                    "&:hover": {
+                      background:
+                        "linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)",
+                      transform: "translateY(-1px)",
+                      boxShadow: "0 4px 8px rgba(220, 38, 38, 0.3)",
+                    },
+                  }}
+                >
+                  Save to API
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
 
-      {/* JSON Drawer */}
-      <JsonDrawer
-        isOpen={isJsonDrawerOpen}
-        onClose={handleCloseJsonDrawer}
-        jsonData={generatedJson}
-      />
+          {/* JSON Drawer */}
+          <JsonDrawer
+            isOpen={isJsonDrawerOpen}
+            onClose={handleCloseJsonDrawer}
+            jsonData={generatedJson}
+          />
+        </Box>
+      )}
+
+      {/* Test Data Tab */}
+      {activeTab === 1 && (
+        <TestData workflowJson={actions.generateWorkflow()} />
+      )}
     </Box>
   );
 };

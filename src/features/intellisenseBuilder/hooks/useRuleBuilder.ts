@@ -207,17 +207,31 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
   // Generate workflow JSON
   const generateWorkflow = useCallback((): GeneratedWorkflow => {
     const workflow: GeneratedWorkflow = {
-      workflowName: state.workflowData.workflowName,
-      description: state.workflowData.description,
-      rules: state.ruleGroups.map((rule) => ({
-        ruleName: rule.ruleName,
-        expression: rule.expression,
-        actions: rule.actionGroups.map((action) => ({
-          actionType: action.actionType,
-          actionName: action.actionName,
-          expression: action.expression || "",
-        })),
-      })),
+      WorkflowName: state.workflowData.workflowName,
+      Description: state.workflowData.description,
+      Rules: state.ruleGroups.map((rule) => {
+        const baseRule = {
+          RuleName: rule.ruleName,
+          Expression: rule.expression,
+        };
+
+        // Only include Actions if there are action groups
+        if (rule.actionGroups.length > 0 && rule.actionGroups[0]?.actionType) {
+          return {
+            ...baseRule,
+            Actions: {
+              OnSuccess: {
+                Name: rule.actionGroups[0].actionType,
+                Context: {
+                  Expression: rule.actionGroups[0]?.expression || "",
+                },
+              },
+            },
+          };
+        }
+
+        return baseRule;
+      }),
     };
 
     console.log("Generated Workflow:", workflow);

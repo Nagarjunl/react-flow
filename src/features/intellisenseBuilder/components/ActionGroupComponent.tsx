@@ -6,7 +6,6 @@ import {
   Box,
   Typography,
   TextField,
-  IconButton,
   Stack,
   Autocomplete,
   Tooltip,
@@ -16,9 +15,8 @@ import {
   Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
-import { actionTypes } from "../../../types/nodeTypes";
 import RuleExpressionEditor from "./RuleExpressionEditor";
-import type { ActionGroup } from "../types";
+import { type ActionGroup, actionTypes } from "../types";
 
 interface ActionGroupComponentProps {
   actionGroup: ActionGroup;
@@ -61,21 +59,32 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
             Action Group:
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-            {actionGroup.actionName ||
-              actionGroup.actionType ||
-              "Untitled Action"}
+            OnSuccess Action
           </Typography>
           <Tooltip title="Delete Action Group">
-            <IconButton
-              size="small"
+            <Box
+              component="div"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(ruleId, actionGroup.id);
               }}
-              color="error"
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 32,
+                height: 32,
+                borderRadius: 1,
+                color: "error.main",
+                "&:hover": {
+                  backgroundColor: "error.light",
+                  color: "error.dark",
+                },
+              }}
             >
-              <DeleteIcon />
-            </IconButton>
+              <DeleteIcon fontSize="small" />
+            </Box>
           </Tooltip>
         </Box>
       </AccordionSummary>
@@ -102,14 +111,14 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Action Type *"
+                  label="Action Name *"
                   variant="outlined"
-                  placeholder="Select action type..."
+                  placeholder="Enter action name..."
                   required
                   error={!actionGroup.actionType.trim()}
                   helperText={
                     !actionGroup.actionType.trim()
-                      ? "Action type is required"
+                      ? "Action name is required"
                       : ""
                   }
                   sx={{
@@ -133,13 +142,13 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
             />
           </Box>
 
-          {/* Action Name */}
+          {/* Expression */}
           <TextField
-            label="Action Name"
-            value={actionGroup.actionName}
+            label="Expression"
+            value={actionGroup.expression || ""}
             onChange={(e) =>
               onUpdate(ruleId, actionGroup.id, {
-                actionName: e.target.value,
+                expression: e.target.value,
               })
             }
             size="small"
@@ -157,7 +166,7 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
                 color: "#666",
               },
             }}
-            placeholder="Enter action name..."
+            placeholder="Enter expression..."
           />
         </Stack>
 

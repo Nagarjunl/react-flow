@@ -54,16 +54,19 @@ export interface UseRuleBuilderActions {
 
 // Generated workflow structure
 export interface GeneratedWorkflow {
-  workflowName: string;
-  description: string;
-  rules: Array<{
-    ruleName: string;
-    expression: string;
-    actions: Array<{
-      actionType: string;
-      actionName: string;
-      expression: string;
-    }>;
+  WorkflowName: string;
+  Description: string;
+  Rules: Array<{
+    RuleName: string;
+    Expression: string;
+    Actions?: {
+      OnSuccess: {
+        Name: string;
+        Context: {
+          Expression: string;
+        };
+      };
+    };
   }>;
 }
 
@@ -164,3 +167,14 @@ export interface CollectionMethodNodeProps {
     updates: { methodName?: string; parameters?: string }
   ) => void;
 }
+
+export interface ActionType {
+  value: string;
+  label: string;
+}
+
+export const actionTypes: ActionType[] = [
+  { value: "onSuccess", label: "On Success" },
+  { value: "onFailure", label: "On Failure" },
+  { value: "onError", label: "On Error" },
+];

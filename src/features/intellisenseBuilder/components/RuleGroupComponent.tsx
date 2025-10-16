@@ -7,7 +7,6 @@ import {
   Typography,
   TextField,
   Button,
-  IconButton,
   Tooltip,
   Stack,
   FormHelperText,
@@ -64,14 +63,26 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
           sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}
         >
           <Tooltip title="Drag to reorder">
-            <IconButton
-              size="small"
+            <Box
+              component="div"
               {...attributes}
               {...listeners}
-              sx={{ cursor: "grab", "&:active": { cursor: "grabbing" } }}
+              sx={{
+                cursor: "grab",
+                "&:active": { cursor: "grabbing" },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 32,
+                height: 32,
+                borderRadius: 1,
+                "&:hover": {
+                  backgroundColor: "action.hover",
+                },
+              }}
             >
-              <DragIndicatorIcon />
-            </IconButton>
+              <DragIndicatorIcon fontSize="small" />
+            </Box>
           </Tooltip>
           <Box sx={{ flex: 1 }}>
             <TextField
@@ -93,16 +104,29 @@ const RuleGroupComponent: React.FC<RuleGroupComponentProps> = ({
             />
           </Box>
           <Tooltip title="Delete Rule">
-            <IconButton
-              size="small"
+            <Box
+              component="div"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(ruleGroup.id);
               }}
-              color="error"
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 32,
+                height: 32,
+                borderRadius: 1,
+                color: "error.main",
+                "&:hover": {
+                  backgroundColor: "error.light",
+                  color: "error.dark",
+                },
+              }}
             >
-              <DeleteIcon />
-            </IconButton>
+              <DeleteIcon fontSize="small" />
+            </Box>
           </Tooltip>
         </Box>
       </AccordionSummary>

@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { autocompletion } from "@codemirror/autocomplete";
 import { EditorView } from "@codemirror/view";
-import { tableSchema } from "../../../constants/constant";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import {
   useGetRuleSchemaQuery,
@@ -60,8 +59,8 @@ function ruleExpressionCompletions(
     }
   }
 
-  // Use provided schema or fallback to tableSchema constant
-  const activeSchema = schema || tableSchema;
+  // Use provided schema or empty object if no schema available
+  const activeSchema = schema || {};
 
   // Build table variables from schema
   const tables = Object.keys(activeSchema).map((tableName) => ({
@@ -708,7 +707,7 @@ const RuleExpressionEditor: React.FC<RuleExpressionEditorProps> = ({
   // Transform API schema to the format we need
   const transformedSchema = useMemo(() => {
     if (!schemaData) {
-      return tableSchema; // Fallback to constant
+      return {}; // Return empty object if no API data
     }
 
     // Check if schemaData is already in the correct format (object with table keys)
@@ -726,8 +725,8 @@ const RuleExpressionEditor: React.FC<RuleExpressionEditorProps> = ({
       }
     }
 
-    // Otherwise use tableSchema constant as fallback
-    return tableSchema;
+    // Return empty object if schema format is not recognized
+    return {};
   }, [schemaData]);
 
   // Memoize the completion function with API data
