@@ -12,7 +12,6 @@ import ReactFlowComponent from "./Screens/ReactFlow";
 import ExpressionBuilder from "./Screens/ExpressionBuilder";
 import { RuleBuilder } from "./features/ruleBuilder";
 import IntellisenseBuilder from "./features/intellisenseBuilder/components/IntellisenseBuilder";
-import IntellisenseDemo from "./features/intellisenseBuilder/components/IntellisenseDemo";
 
 // Create MUI theme using service
 const theme = createTheme(getThemeConfig());
@@ -32,7 +31,6 @@ const App: React.FC = () => {
             path="/intellisense-builder"
             element={<IntellisenseBuilder />}
           />
-          <Route path="/intellisense-demo" element={<IntellisenseDemo />} />
         </Routes>
       </Router>
     </ThemeProvider>

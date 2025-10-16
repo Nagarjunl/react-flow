@@ -13,12 +13,6 @@ const initialWorkflowData: WorkflowData = {
   description: "",
 };
 
-const defaultState: RuleBuilderState = {
-  workflowData: initialWorkflowData,
-  ruleGroups: [],
-  validationErrors: [],
-};
-
 export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
   const [state, setState] = useState<RuleBuilderState>({
     ...initialState,
@@ -205,34 +199,39 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
   }, []);
 
   // Generate workflow JSON
-  const generateWorkflow = useCallback((): GeneratedWorkflow => {
-    const workflow: GeneratedWorkflow = {
-      WorkflowName: state.workflowData.workflowName,
-      Description: state.workflowData.description,
-      Rules: state.ruleGroups.map((rule) => {
-        const baseRule = {
-          RuleName: rule.ruleName,
-          Expression: rule.expression,
-        };
+  const generateWorkflow = useCallback((): GeneratedWorkflow[] => {
+    const workflow: GeneratedWorkflow[] = [
+      {
+        WorkflowName: state.workflowData.workflowName,
+        Description: state.workflowData.description,
+        Rules: state.ruleGroups.map((rule) => {
+          const baseRule = {
+            RuleName: rule.ruleName,
+            Expression: rule.expression,
+          };
 
-        // Only include Actions if there are action groups
-        if (rule.actionGroups.length > 0 && rule.actionGroups[0]?.actionType) {
-          return {
-            ...baseRule,
-            Actions: {
-              OnSuccess: {
-                Name: rule.actionGroups[0].actionType,
-                Context: {
-                  Expression: rule.actionGroups[0]?.expression || "",
+          // Only include Actions if there are action groups
+          if (
+            rule.actionGroups.length > 0 &&
+            rule.actionGroups[0]?.actionType
+          ) {
+            return {
+              ...baseRule,
+              Actions: {
+                OnSuccess: {
+                  Name: rule.actionGroups[0].actionType,
+                  Context: {
+                    Expression: rule.actionGroups[0]?.expression || "",
+                  },
                 },
               },
-            },
-          };
-        }
+            };
+          }
 
-        return baseRule;
-      }),
-    };
+          return baseRule;
+        }),
+      },
+    ];
 
     console.log("Generated Workflow:", workflow);
     return workflow;
@@ -242,26 +241,6 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
   const validateWorkflow = useCallback((): string[] => {
     return validateRules();
   }, [validateRules]);
-
-  // Test workflow
-  const testWorkflow = useCallback(() => {
-    const workflow = generateWorkflow();
-    console.log("Testing Workflow:", workflow);
-    // In a real implementation, you would send this to a test endpoint
-  }, [generateWorkflow]);
-
-  // Clear validation errors
-  const clearValidationErrors = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      validationErrors: [],
-    }));
-  }, []);
-
-  // Reset state
-  const resetState = useCallback(() => {
-    setState(defaultState);
-  }, []);
 
   const actions: UseRuleBuilderActions = {
     updateWorkflowData,
@@ -273,14 +252,11 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     updateActionGroup,
     deleteActionGroup,
     generateWorkflow,
-    testWorkflow,
     validateWorkflow,
-    clearValidationErrors,
   };
 
   return {
     state,
     actions,
-    resetState,
   };
 };

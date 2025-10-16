@@ -40,7 +40,12 @@ import { useRuleBuilder } from "../hooks/useRuleBuilder";
 import RuleGroupComponent from "./RuleGroupComponent";
 import TestData from "./TestData";
 import JsonDrawer from "../../../components/JsonDrawer";
-import { useCreateRuleMutation } from "../../../Api/rulesApi";
+import {
+  useCreateRuleMutation,
+  useTestRuleMutation,
+} from "../../../Api/rulesApi";
+import { useAppDispatch, useAppSelector } from "../../../Store/StoreConfig";
+import { updateWorkflowJson } from "../../../Store/slice/TestSlice";
 import type { RuleBuilderProps } from "../types";
 
 const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
@@ -54,6 +59,10 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
   const [editorTheme, setEditorTheme] = useState<"light" | "dark">("light");
   const [activeTab, setActiveTab] = useState(0);
   const [createRuleMutation] = useCreateRuleMutation();
+  const [testRuleMutation, { isLoading: isTestLoading }] =
+    useTestRuleMutation();
+  const dispatch = useAppDispatch();
+  const testData = useAppSelector((state) => state.testData);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -72,10 +81,35 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
     onWorkflowSave?.(workflow);
   };
 
-  const handleTest = () => {
-    const workflow = actions.generateWorkflow();
-    onWorkflowTest?.(workflow);
-    actions.testWorkflow();
+  const handleTest = async () => {
+    try {
+      const workflow = actions.generateWorkflow();
+      const workflowJson = JSON.stringify(workflow, null, 2);
+
+      // Dispatch the current workflowJson to store
+      dispatch(updateWorkflowJson(workflowJson));
+
+      // Get the current test data (excluding workflowJson)
+      const { workflowJson: _, ...testDataWithoutWorkflow } = testData;
+
+      // Prepare the test data with the generated workflowJson
+      const testPayload = {
+        ...testDataWithoutWorkflow,
+        workflowJson: workflowJson,
+      };
+
+      console.log("Testing with payload:", testPayload);
+
+      const result = await testRuleMutation({ data: testPayload }).unwrap();
+      console.log("Test API result:", result);
+      alert("Test API called successfully! Check console for results.");
+
+      // Call the original onWorkflowTest callback
+      onWorkflowTest?.(workflow);
+    } catch (error) {
+      console.error("Test API error:", error);
+      alert("Failed to call test API. Check console for details.");
+    }
   };
 
   const handleGenerateJson = () => {
@@ -134,8 +168,8 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
 
       // Prepare API data
       const apiData = {
-        name: workflow.WorkflowName,
-        description: workflow.Description,
+        name: workflow[0].WorkflowName,
+        description: workflow[0].Description,
         ruleJson: JSON.stringify(workflow),
         isActive: true,
       };
@@ -382,6 +416,30 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
                   }}
                 >
                   Save to API
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  startIcon={<PlayIcon />}
+                  onClick={handleTest}
+                  disabled={!isValidationPassing() || isTestLoading}
+                  sx={{
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    textTransform: "none",
+                    py: 1.5,
+                    px: 3,
+                    borderColor: "#10b981",
+                    color: "#10b981",
+                    "&:hover": {
+                      borderColor: "#059669",
+                      backgroundColor: "#f0fdf4",
+                      transform: "translateY(-1px)",
+                      boxShadow: "0 4px 8px rgba(16, 185, 129, 0.3)",
+                    },
+                  }}
+                >
+                  {isTestLoading ? "Testing..." : "Test API"}
                 </Button>
               </Stack>
             </CardContent>

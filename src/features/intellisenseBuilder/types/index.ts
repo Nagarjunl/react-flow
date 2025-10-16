@@ -46,10 +46,8 @@ export interface UseRuleBuilderActions {
     updates: Partial<ActionGroup>
   ) => void;
   deleteActionGroup: (ruleId: string, actionId: string) => void;
-  generateWorkflow: () => any;
-  testWorkflow: () => void;
+  generateWorkflow: () => GeneratedWorkflow[];
   validateWorkflow: () => string[];
-  clearValidationErrors: () => void;
 }
 
 // Generated workflow structure
@@ -68,104 +66,6 @@ export interface GeneratedWorkflow {
       };
     };
   }>;
-}
-
-// Data source related types
-export interface DataSourceField {
-  name: string;
-  type: string;
-}
-
-export interface DataSourceTable {
-  [tableName: string]: DataSourceField[];
-}
-
-// Expression validation
-export interface ExpressionValidation {
-  isValid: boolean;
-  errors: string[];
-}
-
-// Table schema integration
-export interface TableSchemaIntegration {
-  availableTables: string[];
-  getTableFields: (tableName: string) => DataSourceField[];
-  getFieldType: (tableName: string, fieldName: string) => string | null;
-  validateExpression: (expression: string) => ExpressionValidation;
-}
-
-// Node component types
-export interface ConditionNodeData {
-  id: string;
-  tableName?: string;
-  fieldName?: string;
-}
-
-export interface ValueNodeData {
-  id: string;
-  value?: string;
-}
-
-export interface OperatorNodeData {
-  id: string;
-  operator?: string;
-  fieldType?: string;
-}
-
-export interface FunctionNodeData {
-  id: string;
-  functionName?: string;
-  parameters?: string;
-}
-
-export interface CollectionMethodNodeData {
-  id: string;
-  methodName?: string;
-  parameters?: string;
-}
-
-// Node component props
-export interface ConditionNodeProps {
-  id: string;
-  tableName?: string;
-  fieldName?: string;
-  onUpdate: (
-    id: string,
-    updates: { tableName?: string; fieldName?: string }
-  ) => void;
-}
-
-export interface ValueNodeProps {
-  id: string;
-  value?: string;
-  onUpdate: (id: string, updates: { value?: string }) => void;
-}
-
-export interface OperatorNodeProps {
-  id: string;
-  operator?: string;
-  fieldType?: string;
-  onUpdate: (id: string, updates: { operator?: string }) => void;
-}
-
-export interface FunctionNodeProps {
-  id: string;
-  functionName?: string;
-  parameters?: string;
-  onUpdate: (
-    id: string,
-    updates: { functionName?: string; parameters?: string }
-  ) => void;
-}
-
-export interface CollectionMethodNodeProps {
-  id: string;
-  methodName?: string;
-  parameters?: string;
-  onUpdate: (
-    id: string,
-    updates: { methodName?: string; parameters?: string }
-  ) => void;
 }
 
 export interface ActionType {
