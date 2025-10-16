@@ -168,15 +168,18 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
 
   // Generate workflow JSON using the transformer utility
   const generateWorkflow = useCallback((): GeneratedWorkflow[] => {
-    const workflow = generateWorkflowJSON(state.workflowData, state.ruleGroups);
-    console.log("Generated Workflow:", workflow);
-    return workflow;
+    return generateWorkflowJSON(state.workflowData, state.ruleGroups);
   }, [state.workflowData, state.ruleGroups]);
 
   // Validate workflow before saving
   const validateWorkflowFn = useCallback((): string[] => {
     return validateRules();
   }, [validateRules]);
+
+  // Initialize with loaded data (for edit mode)
+  const initializeWithData = useCallback((data: RuleBuilderState) => {
+    setState(data);
+  }, []);
 
   const actions: UseRuleBuilderActions = {
     updateWorkflowData,
@@ -189,6 +192,7 @@ export const useRuleBuilder = (initialState?: Partial<RuleBuilderState>) => {
     deleteActionGroup,
     generateWorkflow,
     validateWorkflow: validateWorkflowFn,
+    initializeWithData,
   };
 
   return {

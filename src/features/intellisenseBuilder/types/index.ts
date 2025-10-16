@@ -47,6 +47,7 @@ export interface UseRuleBuilderActions {
   deleteActionGroup: (ruleId: string, actionId: string) => void;
   generateWorkflow: () => GeneratedWorkflow[];
   validateWorkflow: () => string[];
+  initializeWithData: (data: RuleBuilderState) => void;
 }
 
 // Generated workflow structure

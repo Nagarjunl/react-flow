@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Card,
@@ -11,6 +11,8 @@ import {
   TextField,
   Tabs,
   Tab,
+  Button,
+  Alert,
 } from "@mui/material";
 import {
   Save as SaveIcon,
@@ -19,6 +21,7 @@ import {
   Brightness7 as LightModeIcon,
   Add as AddIcon,
   Description as GenerateIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import {
   DndContext,
@@ -36,6 +39,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useRuleBuilder } from "../hooks/useRuleBuilder";
 import { useWorkflowActions } from "../hooks/useWorkflowActions";
+import { useRuleEdit } from "../hooks/useRuleEdit";
 import RuleGroupComponent from "./RuleGroupComponent";
 import TestData from "./TestData";
 import JsonDrawer from "../../../components/JsonDrawer";
@@ -56,10 +60,49 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
     isTestLoading,
   } = useWorkflowActions();
 
+  const {
+    editMode,
+    loadRuleFromUrl,
+    getTransformedRuleData,
+    saveEditedRule,
+    cancelEdit,
+    isUpdating,
+  } = useRuleEdit();
+
   const [isJsonDrawerOpen, setIsJsonDrawerOpen] = useState(false);
   const [generatedJson, setGeneratedJson] = useState("");
   const [editorTheme, setEditorTheme] = useState<"light" | "dark">("light");
   const [activeTab, setActiveTab] = useState(0);
+  const hasLoadedRuleData = useRef(false);
+
+  // Handle edit mode initialization and data loading
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    loadRuleFromUrl(urlParams);
+  }, [loadRuleFromUrl]);
+
+  useEffect(() => {
+    if (
+      editMode.isEditMode &&
+      !editMode.isLoading &&
+      !editMode.error &&
+      !hasLoadedRuleData.current
+    ) {
+      const transformedData = getTransformedRuleData();
+      if (transformedData) {
+        actions.initializeWithData(transformedData);
+        hasLoadedRuleData.current = true;
+      }
+    } else if (!editMode.isEditMode) {
+      hasLoadedRuleData.current = false;
+    }
+  }, [
+    editMode.isEditMode,
+    editMode.isLoading,
+    editMode.error,
+    getTransformedRuleData,
+    actions,
+  ]);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -73,9 +116,19 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
     setEditorTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const workflow = actions.generateWorkflow();
-    onWorkflowSave?.(workflow);
+
+    if (editMode.isEditMode && editMode.ruleId) {
+      try {
+        await saveEditedRule(workflow);
+        onWorkflowSave?.(workflow);
+      } catch (error) {
+        console.error("Failed to save edited rule:", error);
+      }
+    } else {
+      onWorkflowSave?.(workflow);
+    }
   };
 
   const handleTest = async () => {
@@ -132,8 +185,37 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
       {/* Header */}
       <Card sx={{ mb: 2 }}>
         <CardHeader
-          title="Intellisense Rule Builder"
-          subheader="Build complex workflows with rules and actions"
+          title={
+            <Stack direction="row" alignItems="center" spacing={2}>
+              {editMode.isEditMode && (
+                <Button
+                  startIcon={<ArrowBackIcon />}
+                  onClick={cancelEdit}
+                  variant="outlined"
+                  size="small"
+                >
+                  Back to Rules List
+                </Button>
+              )}
+              <Box>
+                <Typography variant="h6" component="div">
+                  {editMode.isEditMode
+                    ? "Edit Rule"
+                    : "Intellisense Rule Builder"}
+                </Typography>
+                {editMode.isEditMode && editMode.originalRuleName && (
+                  <Typography variant="body2" color="text.secondary">
+                    Editing: {editMode.originalRuleName}
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+          }
+          subheader={
+            editMode.isEditMode
+              ? "Modify existing rule workflow and actions"
+              : "Build complex workflows with rules and actions"
+          }
           action={
             <Stack direction="row" spacing={1}>
               <Tooltip
@@ -152,12 +234,22 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
                 </IconButton>
               </Tooltip>
               <Tooltip title="Test Workflow">
-                <IconButton onClick={handleTest} color="primary">
+                <IconButton
+                  onClick={handleTest}
+                  color="primary"
+                  disabled={isTestLoading}
+                >
                   <PlayIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Save Workflow">
-                <IconButton onClick={handleSave} color="success">
+              <Tooltip
+                title={editMode.isEditMode ? "Update Rule" : "Save Workflow"}
+              >
+                <IconButton
+                  onClick={handleSave}
+                  color="success"
+                  disabled={isUpdating}
+                >
                   <SaveIcon />
                 </IconButton>
               </Tooltip>
@@ -165,6 +257,25 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
           }
         />
       </Card>
+
+      {/* Edit Mode Error States */}
+
+      {editMode.isEditMode && editMode.error && (
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {editMode.error}
+            </Alert>
+            <Button
+              variant="outlined"
+              onClick={cancelEdit}
+              startIcon={<ArrowBackIcon />}
+            >
+              Back to Rules List
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
       <Card sx={{ mb: 2 }}>
@@ -278,9 +389,9 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
                   gradientVariant="red"
                   startIcon={<SaveIcon />}
                   onClick={handleSaveToApi}
-                  disabled={!isValidationPassing()}
+                  disabled={!isValidationPassing() || isUpdating}
                 >
-                  Save to API
+                  {editMode.isEditMode ? "Update Rule" : "Save to API"}
                 </GradientButton>
 
                 <GradientButton

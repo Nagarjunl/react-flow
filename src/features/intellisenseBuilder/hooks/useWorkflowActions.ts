@@ -2,6 +2,7 @@ import { useMemo, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../../Store/StoreConfig";
 import {
   useCreateRuleMutation,
+  useUpdateRuleMutation,
   useTestRuleMutation,
 } from "../../../Api/rulesApi";
 import { updateWorkflowJson } from "../../../Store/slice/TestSlice";
@@ -13,6 +14,7 @@ export const useWorkflowActions = () => {
   const dispatch = useAppDispatch();
   const testData = useAppSelector((state) => state.testData);
   const [createRuleMutation] = useCreateRuleMutation();
+  const [updateRuleMutation] = useUpdateRuleMutation();
   const [testRuleMutation, { isLoading: isTestLoading }] =
     useTestRuleMutation();
 
@@ -21,16 +23,24 @@ export const useWorkflowActions = () => {
     () =>
       new WorkflowService({
         createRuleMutation: (data) => createRuleMutation(data).unwrap(),
+        updateRuleMutation: (data) => updateRuleMutation(data).unwrap(),
         testRuleMutation: (data) => testRuleMutation(data).unwrap(),
         dispatch,
         updateWorkflowJson,
       }),
-    [createRuleMutation, testRuleMutation, dispatch]
+    [createRuleMutation, updateRuleMutation, testRuleMutation, dispatch]
   );
 
   const saveWorkflow = useCallback(
     async (workflow: GeneratedWorkflow[]) => {
       return workflowService.saveWorkflow(workflow);
+    },
+    [workflowService]
+  );
+
+  const updateWorkflow = useCallback(
+    async (workflow: GeneratedWorkflow[], ruleId: string | number) => {
+      return workflowService.updateWorkflow(workflow, ruleId);
     },
     [workflowService]
   );
@@ -62,6 +72,7 @@ export const useWorkflowActions = () => {
 
   return {
     saveWorkflow,
+    updateWorkflow,
     testWorkflow,
     saveWorkflowWithValidation,
     generateJSON,

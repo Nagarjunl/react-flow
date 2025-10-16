@@ -6,6 +6,10 @@ import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants";
 
 export interface WorkflowServiceDependencies {
   createRuleMutation: (data: { data: any }) => Promise<any>;
+  updateRuleMutation: (data: {
+    id: string | number;
+    data: any;
+  }) => Promise<any>;
   testRuleMutation: (data: { data: any }) => Promise<any>;
   dispatch: (action: any) => void;
   updateWorkflowJson: (json: string) => any;
@@ -27,6 +31,26 @@ export class WorkflowService {
       alert(SUCCESS_MESSAGES.WORKFLOW_SAVED);
     } catch (error) {
       console.error("Failed to save workflow to API:", error);
+      alert(ERROR_MESSAGES.SAVE_API_FAILED);
+      throw error;
+    }
+  }
+
+  async updateWorkflow(
+    workflow: GeneratedWorkflow[],
+    ruleId: string | number
+  ): Promise<void> {
+    try {
+      const apiData = prepareApiData(workflow);
+      const result = await this.deps.updateRuleMutation({
+        id: ruleId,
+        data: apiData,
+      });
+
+      console.log("Workflow updated successfully:", result);
+      alert(SUCCESS_MESSAGES.WORKFLOW_SAVED);
+    } catch (error) {
+      console.error("Failed to update workflow to API:", error);
       alert(ERROR_MESSAGES.SAVE_API_FAILED);
       throw error;
     }

@@ -12,6 +12,7 @@ import ReactFlowComponent from "./Screens/ReactFlow";
 import ExpressionBuilder from "./Screens/ExpressionBuilder";
 import { RuleBuilder } from "./features/ruleBuilder";
 import IntellisenseBuilder from "./features/intellisenseBuilder/components/IntellisenseBuilder";
+import RuleList from "./features/intellisenseBuilder/components/RuleList";
 
 // Create MUI theme using service
 const theme = createTheme(getThemeConfig());
@@ -27,6 +28,7 @@ const App: React.FC = () => {
           <Route path="/reactflow" element={<ReactFlowComponent />} />
           <Route path="/expression-builder" element={<ExpressionBuilder />} />
           <Route path="/rule-builder" element={<RuleBuilder />} />
+          <Route path="/rules-list" element={<RuleList />} />
           <Route
             path="/intellisense-builder"
             element={<IntellisenseBuilder />}
