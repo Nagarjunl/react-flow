@@ -117,7 +117,7 @@ export const buildConstants = (
     ...booleanConstants,
     ...countries.map((country) => ({
       label: country.name || "",
-      type: "constant",
+      type: "constant" as const,
       detail: `(${country.code})`,
       info: `Country: ${country.name} (${country.code})`,
       apply: `"${country.name}"`,

@@ -13,7 +13,6 @@ import {
   getFieldType,
   normalizeTableName,
   buildTableVariables,
-  buildProperties,
   buildConstants,
   filterOptions,
 } from "./intellisenseHelpers";
@@ -92,7 +91,7 @@ const detectPropertyChainContext = (
 
   const fieldType = getFieldType(schema, tableName, fieldName);
 
-  return { tableName, fieldName, fieldType };
+  return { tableName, fieldName, fieldType: fieldType ?? undefined };
 };
 
 /**
@@ -190,7 +189,6 @@ export const getCompletionOptions = ({
 
   // Build base options
   const tables = buildTableVariables(activeSchema);
-  const properties = buildProperties(activeSchema);
   const constants = buildConstants(countries, [...BOOLEAN_CONSTANTS]);
   let options = [...tables, ...ALL_FUNCTIONS, ...OPERATORS, ...constants];
 
@@ -209,7 +207,7 @@ export const getCompletionOptions = ({
     if (activeSchema[lambdaContext.tableName]) {
       options = activeSchema[lambdaContext.tableName].map((field: any) => ({
         label: field.name,
-        type: "property",
+        type: "property" as const,
         detail: `(${field.type})`,
         info: `${lambdaContext.paramName}.${field.name} - Type: ${field.type}`,
       }));
@@ -253,7 +251,7 @@ export const getCompletionOptions = ({
     const tableFields = activeSchema[collectionDotContext.tableName].map(
       (field: any) => ({
         label: field.name,
-        type: "property",
+        type: "property" as const,
         detail: `(${field.type})`,
         info: `${collectionDotContext.name}.${field.name} - Type: ${field.type}`,
       })
@@ -273,7 +271,7 @@ export const getCompletionOptions = ({
     options = activeSchema[standardTableContext.tableName].map(
       (field: any) => ({
         label: field.name,
-        type: "property",
+        type: "property" as const,
         detail: `(${field.type})`,
         info: `${standardTableContext.tableName}.${field.name} - Type: ${field.type}`,
       })
