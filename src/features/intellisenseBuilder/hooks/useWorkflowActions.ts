@@ -8,7 +8,6 @@ import {
 import { updateWorkflowJson } from "../../../Store/slice/TestSlice";
 import { WorkflowService } from "../services";
 import type { GeneratedWorkflow } from "../types";
-import { ERROR_MESSAGES } from "../constants";
 
 export const useWorkflowActions = () => {
   const dispatch = useAppDispatch();
@@ -52,17 +51,6 @@ export const useWorkflowActions = () => {
     [workflowService, testData]
   );
 
-  const saveWorkflowWithValidation = useCallback(
-    async (workflow: GeneratedWorkflow[], validationErrors: string[]) => {
-      if (validationErrors.length > 0) {
-        alert(ERROR_MESSAGES.getValidationErrors(validationErrors));
-        return;
-      }
-      return saveWorkflow(workflow);
-    },
-    [saveWorkflow]
-  );
-
   const generateJSON = useCallback(
     (workflow: GeneratedWorkflow[]) => {
       return workflowService.generateJSON(workflow);
@@ -74,7 +62,6 @@ export const useWorkflowActions = () => {
     saveWorkflow,
     updateWorkflow,
     testWorkflow,
-    saveWorkflowWithValidation,
     generateJSON,
     isTestLoading,
   };

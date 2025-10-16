@@ -10,7 +10,12 @@ import {
   isValidRuleForEditing,
   extractRuleIdFromUrl,
 } from "../utils/ruleTransformer";
-import type { RuleBuilderState, GeneratedWorkflow } from "../types";
+import type {
+  RuleBuilderState,
+  GeneratedWorkflow,
+  RuleGroup,
+  ActionGroup,
+} from "../types";
 
 export interface EditModeState {
   isEditMode: boolean;
@@ -111,6 +116,29 @@ export const useRuleEdit = () => {
       }
 
       try {
+        // Convert GeneratedWorkflow Rules back to RuleGroups
+        const ruleGroups: RuleGroup[] =
+          workflow[0]?.Rules?.map((rule, index) => {
+            const ruleGroup: RuleGroup = {
+              id: `rule_${Date.now()}_${index}`,
+              ruleName: rule.RuleName || "",
+              expression: rule.Expression || "",
+              actionGroups: [],
+            };
+
+            // Transform actions if they exist
+            if (rule.Actions?.OnSuccess) {
+              const actionGroup: ActionGroup = {
+                id: `action_${Date.now()}_${index}`,
+                actionType: rule.Actions.OnSuccess.Name || "onSuccess",
+                expression: rule.Actions.OnSuccess.Context?.Expression || "",
+              };
+              ruleGroup.actionGroups.push(actionGroup);
+            }
+
+            return ruleGroup;
+          }) || [];
+
         // Transform workflow back to API format
         const apiRuleData = transformBuilderStateToApiRule(
           {
@@ -118,7 +146,7 @@ export const useRuleEdit = () => {
               workflowName: workflow[0]?.WorkflowName || "",
               description: workflow[0]?.Description || "",
             },
-            ruleGroups: [], // This will be populated from the workflow
+            ruleGroups: ruleGroups,
             validationErrors: [],
           },
           editMode.ruleId

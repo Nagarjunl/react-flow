@@ -53,12 +53,8 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
   initialWorkflow,
 }) => {
   const { state, actions } = useRuleBuilder(initialWorkflow);
-  const {
-    saveWorkflowWithValidation,
-    testWorkflow,
-    generateJSON,
-    isTestLoading,
-  } = useWorkflowActions();
+  const { saveWorkflow, testWorkflow, generateJSON, isTestLoading } =
+    useWorkflowActions();
 
   const {
     editMode,
@@ -127,7 +123,13 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
         console.error("Failed to save edited rule:", error);
       }
     } else {
-      onWorkflowSave?.(workflow);
+      // Create mode - use workflow service to save to API
+      try {
+        await saveWorkflow(workflow);
+        onWorkflowSave?.(workflow);
+      } catch (error) {
+        console.error("Failed to save workflow:", error);
+      }
     }
   };
 
@@ -172,12 +174,6 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
 
       actions.reorderRuleGroups(oldIndex, newIndex);
     }
-  };
-
-  const handleSaveToApi = async () => {
-    const workflow = actions.generateWorkflow();
-    const validationErrors = actions.validateWorkflow();
-    await saveWorkflowWithValidation(workflow, validationErrors);
   };
 
   return (
@@ -388,7 +384,7 @@ const IntellisenseBuilder: React.FC<RuleBuilderProps> = ({
                 <GradientButton
                   gradientVariant="red"
                   startIcon={<SaveIcon />}
-                  onClick={handleSaveToApi}
+                  onClick={handleSave}
                   disabled={!isValidationPassing() || isUpdating}
                 >
                   {editMode.isEditMode ? "Update Rule" : "Save to API"}
